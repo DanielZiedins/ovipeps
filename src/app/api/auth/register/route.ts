@@ -1,0 +1,58 @@
+import { NextResponse } from "next/server";
+import bcrypt from "bcryptjs";
+import { z } from "zod";
+import { db } from "@/lib/db";
+
+const registerSchema = z.object({
+  firstName: z.string().min(1, "First name is required"),
+  lastName: z.string().min(1, "Last name is required"),
+  email: z.string().email("Invalid email address"),
+  password: z.string().min(8, "Password must be at least 8 characters"),
+});
+
+export async function POST(request: Request) {
+  try {
+    const body = await request.json();
+    const parsed = registerSchema.safeParse(body);
+
+    if (!parsed.success) {
+      return NextResponse.json(
+        { error: parsed.error.issues[0]?.message ?? "Invalid input" },
+        { status: 400 }
+      );
+    }
+
+    const { firstName, lastName, email, password } = parsed.data;
+    const normalizedEmail = email.trim().toLowerCase();
+
+    const existing = await db.user.findUnique({
+      where: { email: normalizedEmail },
+    });
+
+    if (existing) {
+      return NextResponse.json(
+        { error: "An account with this email already exists" },
+        { status: 400 }
+      );
+    }
+
+    const passwordHash = await bcrypt.hash(password, 12);
+
+    await db.user.create({
+      data: {
+        email: normalizedEmail,
+        passwordHash,
+        firstName: firstName.trim(),
+        lastName: lastName.trim(),
+        role: "CUSTOMER",
+      },
+    });
+
+    return NextResponse.json({ success: true });
+  } catch {
+    return NextResponse.json(
+      { error: "Unable to create account. Please try again." },
+      { status: 500 }
+    );
+  }
+}

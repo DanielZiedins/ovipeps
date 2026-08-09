@@ -1,0 +1,60 @@
+import type { CommissionStatus } from "@/generated/prisma/enums";
+
+export const COMMISSION_STATUS_LABELS: Record<CommissionStatus, string> = {
+  PENDING: "Pending",
+  APPROVED: "Approved",
+  LOCKED: "Locked",
+  PAID: "Paid",
+  REVERSED: "Reversed",
+};
+
+export interface AffiliateDashboardData {
+  account: {
+    id: string;
+    code: string;
+    commissionRate: number;
+    status: string;
+    totalClicks: number;
+    totalOrders: number;
+    totalEarnings: number;
+    paidEarnings: number;
+    pendingEarnings: number;
+  };
+  conversionRate: number;
+  commissionByStatus: Partial<Record<CommissionStatus, number>>;
+  clickChart: { date: string; value: number }[];
+  commissionChart: { date: string; value: number }[];
+  clicks: {
+    id: string;
+    referrer: string | null;
+    landingPage: string | null;
+    createdAt: string;
+  }[];
+  attributions: {
+    id: string;
+    code: string;
+    converted: boolean;
+    expiresAt: string;
+    createdAt: string;
+  }[];
+  commissions: {
+    id: string;
+    orderNumber: string;
+    orderAmount: number;
+    commissionAmount: number;
+    status: CommissionStatus;
+    flagged: boolean;
+    flagReason: string | null;
+    createdAt: string;
+  }[];
+  payouts: {
+    id: string;
+    periodMonth: number;
+    periodYear: number;
+    grossSales: number;
+    commissionOwed: number;
+    status: string;
+    paidAt: string | null;
+    createdAt: string;
+  }[];
+}
