@@ -1,4 +1,5 @@
 import { db } from "@/lib/db";
+import { FALLBACK_PRODUCTS, FALLBACK_SETTINGS } from "@/lib/fallback-data";
 import type { Prisma, ProductCategory } from "@/generated/prisma/client";
 import {
   getLowestPrice,
@@ -158,32 +159,53 @@ function applyPostFilters(
   return result;
 }
 
+function filterFallbackProducts(filters: ProductQueryFilters): ProductCardData[] {
+  let result = [...FALLBACK_PRODUCTS];
+  if (filters.filter === "featured") result = result.filter((p) => p.featured);
+  if (filters.filter === "new") result = result.filter((p) => p.isNew);
+  if (filters.q?.trim()) {
+    const q = filters.q.trim().toLowerCase();
+    result = result.filter(
+      (p) =>
+        p.name.toLowerCase().includes(q) ||
+        p.researchCategory?.toLowerCase().includes(q) ||
+        p.shortDescription?.toLowerCase().includes(q)
+    );
+  }
+  result = applyPostFilters(result, filters);
+  return sortProducts(result, filters.sort ?? "featured");
+}
+
 export async function getProducts(
   filters: ProductQueryFilters = {}
 ): Promise<ProductCardData[]> {
-  const sort = filters.sort ?? "featured";
+  try {
+    const sort = filters.sort ?? "featured";
 
-  const orderBy: Prisma.ProductOrderByWithRelationInput[] =
-    sort === "newest"
-      ? [{ createdAt: "desc" }]
-      : sort === "name-asc" || sort === "name-desc"
-        ? [{ name: sort === "name-asc" ? "asc" : "desc" }]
-        : [{ sortOrder: "asc" }, { featured: "desc" }, { name: "asc" }];
+    const orderBy: Prisma.ProductOrderByWithRelationInput[] =
+      sort === "newest"
+        ? [{ createdAt: "desc" }]
+        : sort === "name-asc" || sort === "name-desc"
+          ? [{ name: sort === "name-asc" ? "asc" : "desc" }]
+          : [{ sortOrder: "asc" }, { featured: "desc" }, { name: "asc" }];
 
-  const products = await db.product.findMany({
-    where: buildWhereClause(filters),
-    include: productCardInclude,
-    orderBy,
-  });
+    const products = await db.product.findMany({
+      where: buildWhereClause(filters),
+      include: productCardInclude,
+      orderBy,
+    });
 
-  const cardData = products.map(getProductCardData);
-  const filtered = applyPostFilters(cardData, filters);
+    const cardData = products.map(getProductCardData);
+    const filtered = applyPostFilters(cardData, filters);
 
-  if (sort === "price-asc" || sort === "price-desc") {
-    return sortProducts(filtered, sort);
+    if (sort === "price-asc" || sort === "price-desc") {
+      return sortProducts(filtered, sort);
+    }
+
+    return filtered;
+  } catch {
+    return filterFallbackProducts(filters);
   }
-
-  return filtered;
 }
 
 export async function getProductBySlug(slug: string): Promise<ProductDetail | null> {
@@ -194,14 +216,17 @@ export async function getProductBySlug(slug: string): Promise<ProductDetail | nu
 }
 
 export async function getFeaturedProducts(limit = 8): Promise<ProductCardData[]> {
-  const products = await db.product.findMany({
-    where: { published: true, featured: true },
-    include: productCardInclude,
-    orderBy: [{ sortOrder: "asc" }, { name: "asc" }],
-    take: limit,
-  });
-
-  return products.map(getProductCardData);
+  try {
+    const products = await db.product.findMany({
+      where: { published: true, featured: true },
+      include: productCardInclude,
+      orderBy: [{ sortOrder: "asc" }, { name: "asc" }],
+      take: limit,
+    });
+    return products.map(getProductCardData);
+  } catch {
+    return FALLBACK_PRODUCTS.filter((p) => p.featured).slice(0, limit);
+  }
 }
 
 export async function getRelatedProducts(
@@ -224,30 +249,32 @@ export async function getRelatedProducts(
 }
 
 export async function getResearchCategories(): Promise<string[]> {
-  const results = await db.product.findMany({
-    where: { published: true, researchCategory: { not: null } },
-    select: { researchCategory: true },
-    distinct: ["researchCategory"],
-    orderBy: { researchCategory: "asc" },
-  });
-
-  return results
-    .map((r) => r.researchCategory)
-    .filter((c): c is string => c !== null);
+  try {
+    const results = await db.product.findMany({
+      where: { published: true, researchCategory: { not: null } },
+      select: { researchCategory: true },
+      distinct: ["researchCategory"],
+      orderBy: { researchCategory: "asc" },
+    });
+    return results.map((r) => r.researchCategory).filter((c): c is string => c !== null);
+  } catch {
+    return [...new Set(FALLBACK_PRODUCTS.map((p) => p.researchCategory).filter(Boolean) as string[])];
+  }
 }
 
 export async function getProductPriceRange(): Promise<{ min: number; max: number }> {
-  const variants = await db.productVariant.findMany({
-    where: { product: { published: true } },
-    select: { price: true },
-  });
-
-  if (variants.length === 0) {
-    return { min: 0, max: 0 };
+  try {
+    const variants = await db.productVariant.findMany({
+      where: { product: { published: true } },
+      select: { price: true },
+    });
+    if (variants.length === 0) return { min: 0, max: 0 };
+    const prices = variants.map((v) => v.price);
+    return { min: Math.min(...prices), max: Math.max(...prices) };
+  } catch {
+    const prices = FALLBACK_PRODUCTS.flatMap((p) => p.variants.map((v) => v.price));
+    return { min: Math.min(...prices), max: Math.max(...prices) };
   }
-
-  const prices = variants.map((v) => v.price);
-  return { min: Math.min(...prices), max: Math.max(...prices) };
 }
 
 export async function getProductFaqs() {
@@ -261,6 +288,10 @@ export async function getProductFaqs() {
 }
 
 export async function getSiteSetting(key: string): Promise<string | null> {
-  const setting = await db.siteSetting.findUnique({ where: { key } });
-  return setting?.value ?? null;
+  try {
+    const setting = await db.siteSetting.findUnique({ where: { key } });
+    return setting?.value ?? FALLBACK_SETTINGS[key] ?? null;
+  } catch {
+    return FALLBACK_SETTINGS[key] ?? null;
+  }
 }

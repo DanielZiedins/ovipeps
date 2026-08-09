@@ -2,7 +2,7 @@ import { PrismaClient } from "@/generated/prisma/client";
 import { PrismaBetterSqlite3 } from "@prisma/adapter-better-sqlite3";
 import { PrismaLibSql } from "@prisma/adapter-libsql";
 
-function createPrismaClient() {
+function createPrismaClient(): PrismaClient {
   if (process.env.TURSO_DATABASE_URL) {
     const adapter = new PrismaLibSql({
       url: process.env.TURSO_DATABASE_URL,
@@ -17,8 +17,23 @@ function createPrismaClient() {
   });
 }
 
-const globalForPrisma = globalThis as unknown as { prisma: PrismaClient };
+const globalForPrisma = globalThis as unknown as { prisma?: PrismaClient };
 
-export const db = globalForPrisma.prisma ?? createPrismaClient();
+function getDb(): PrismaClient {
+  if (!globalForPrisma.prisma) {
+    globalForPrisma.prisma = createPrismaClient();
+  }
+  return globalForPrisma.prisma;
+}
 
-if (process.env.NODE_ENV !== "production") globalForPrisma.prisma = db;
+/** Lazy proxy — avoids crashing at import time if DB is unavailable */
+export const db = new Proxy({} as PrismaClient, {
+  get(_target, prop) {
+    const client = getDb();
+    const value = client[prop as keyof PrismaClient];
+    if (typeof value === "function") {
+      return value.bind(client);
+    }
+    return value;
+  },
+});
