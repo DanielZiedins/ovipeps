@@ -1,6 +1,10 @@
 import { NextResponse } from "next/server";
-import { db } from "@/lib/db";
-import { getProductCardData } from "@/lib/products";
+import { searchPublishedCoaDocuments } from "@/lib/coa";
+import {
+  getPublishedArticles,
+  getPublishedFaqs,
+} from "@/lib/content-data";
+import { getProducts } from "@/lib/products";
 import { getLowestPrice } from "@/types/product";
 
 export async function GET(request: Request) {
@@ -17,88 +21,39 @@ export async function GET(request: Request) {
     });
   }
 
-  const [products, articles, faqs, coas] = await Promise.all([
-    db.product.findMany({
-      where: {
-        published: true,
-        OR: [
-          { name: { contains: q } },
-          { shortDescription: { contains: q } },
-          { researchCategory: { contains: q } },
-          { description: { contains: q } },
-        ],
-      },
-      include: {
-        variants: { orderBy: { sortOrder: "asc" } },
-        coaDocuments: { where: { published: true }, select: { id: true } },
-      },
-      take: 8,
-      orderBy: [{ featured: "desc" }, { name: "asc" }],
-    }),
-    db.article.findMany({
-      where: {
-        published: true,
-        OR: [
-          { title: { contains: q } },
-          { excerpt: { contains: q } },
-          { content: { contains: q } },
-        ],
-      },
-      select: {
-        id: true,
-        title: true,
-        slug: true,
-        excerpt: true,
-        category: true,
-      },
-      take: 5,
-      orderBy: { publishedAt: "desc" },
-    }),
-    db.faqItem.findMany({
-      where: {
-        published: true,
-        OR: [{ question: { contains: q } }, { answer: { contains: q } }],
-      },
-      select: {
-        id: true,
-        question: true,
-        answer: true,
-        category: true,
-      },
-      take: 5,
-      orderBy: { sortOrder: "asc" },
-    }),
-    db.coaDocument.findMany({
-      where: {
-        published: true,
-        OR: [
-          { batchNumber: { contains: q } },
-          { lotNumber: { contains: q } },
-          { resultSummary: { contains: q } },
-          { testingProvider: { contains: q } },
-          { product: { name: { contains: q } } },
-        ],
-      },
-      include: {
-        product: { select: { name: true, slug: true } },
-      },
-      take: 5,
-      orderBy: { testingDate: "desc" },
-    }),
+  const normalizedQuery = q.toLowerCase();
+  const [products, allArticles, allFaqs, coas] = await Promise.all([
+    getProducts({ q }),
+    getPublishedArticles(),
+    getPublishedFaqs(),
+    searchPublishedCoaDocuments(q),
   ]);
+  const articles = allArticles
+    .filter((article) =>
+      [article.title, article.excerpt, article.content].some((value) =>
+        value.toLowerCase().includes(normalizedQuery)
+      )
+    )
+    .slice(0, 5);
+  const faqs = allFaqs
+    .filter(
+      (faq) =>
+        faq.question.toLowerCase().includes(normalizedQuery) ||
+        faq.answer.toLowerCase().includes(normalizedQuery)
+    )
+    .slice(0, 5);
 
-  const productResults = products.map((product) => {
-    const card = getProductCardData(product);
+  const productResults = products.slice(0, 8).map((product) => {
     return {
-      id: card.id,
+      id: product.id,
       type: "product" as const,
-      name: card.name,
-      slug: card.slug,
-      shortDescription: card.shortDescription,
-      imageUrl: card.imageUrl,
-      price: getLowestPrice(card.variants),
-      category: card.researchCategory,
-      href: `/shop/${card.slug}`,
+      name: product.name,
+      slug: product.slug,
+      shortDescription: product.shortDescription,
+      imageUrl: product.imageUrl,
+      price: getLowestPrice(product.variants),
+      category: product.researchCategory,
+      href: `/shop/${product.slug}`,
     };
   });
 
@@ -112,20 +67,20 @@ export async function GET(request: Request) {
     href: `/research/${article.slug}`,
   }));
 
-  const faqResults = faqs.map((faq) => ({
-    id: faq.id,
+  const faqResults = faqs.map((faq, index) => ({
+    id: `faq-${index}-${faq.category}`,
     type: "faq" as const,
     name: faq.question,
-    slug: faq.id,
+    slug: `faq-${index}`,
     shortDescription: faq.answer.slice(0, 120) + (faq.answer.length > 120 ? "…" : ""),
     category: faq.category,
     href: "/research/faq",
   }));
 
-  const coaResults = coas.map((coa) => ({
+  const coaResults = coas.slice(0, 5).map((coa) => ({
     id: coa.id,
     type: "coa" as const,
-    name: `${coa.product.name} — ${coa.batchNumber}`,
+    name: `${coa.productName} — ${coa.batchNumber}`,
     slug: coa.id,
     shortDescription: coa.resultSummary ?? coa.purityResult,
     category: "COA",

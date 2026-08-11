@@ -12,7 +12,7 @@ const MARQUEE_ITEMS = [
   "Research Use Only",
   "Batch-Tested Quality",
   "Fast Support",
-  "Secure Checkout",
+  "Clear e-Transfer Checkout",
   "Lab-Grade Compounds",
 ];
 

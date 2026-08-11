@@ -1,8 +1,6 @@
 import type { Metadata } from "next";
 import { FileCheck2 } from "lucide-react";
 import { CoaSearch } from "@/components/coa/coa-search";
-import { Footer } from "@/components/layout/footer";
-import { Header } from "@/components/layout/header";
 import { getPublishedCoaDocuments } from "@/lib/coa";
 
 export const metadata: Metadata = {
@@ -20,10 +18,7 @@ export default async function LabResultsPage() {
   const documents = await getPublishedCoaDocuments();
 
   return (
-    <div className="flex min-h-full flex-col">
-      <Header />
-
-      <main className="flex-1">
+    <>
         <section className="relative overflow-hidden border-b border-border">
           <div className="absolute inset-0 bg-gradient-to-br from-navy-deep via-navy to-teal/70" />
           <div className="absolute inset-0 molecular-bg opacity-50" />
@@ -58,9 +53,6 @@ export default async function LabResultsPage() {
             </p>
           </div>
         </section>
-      </main>
-
-      <Footer />
-    </div>
+    </>
   );
 }

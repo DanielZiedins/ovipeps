@@ -1,6 +1,7 @@
 import type { MetadataRoute } from "next";
 import { SITE_URL } from "@/lib/content";
-import { db } from "@/lib/db";
+import { getPublishedArticles } from "@/lib/content-data";
+import { getProducts } from "@/lib/products";
 
 const STATIC_ROUTES = [
   "",
@@ -21,14 +22,8 @@ const STATIC_ROUTES = [
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const [products, articles] = await Promise.all([
-    db.product.findMany({
-      where: { published: true },
-      select: { slug: true, updatedAt: true },
-    }),
-    db.article.findMany({
-      where: { published: true },
-      select: { slug: true, updatedAt: true },
-    }),
+    getProducts(),
+    getPublishedArticles(),
   ]);
 
   const staticEntries: MetadataRoute.Sitemap = STATIC_ROUTES.map((route) => ({
@@ -40,7 +35,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
   const productEntries: MetadataRoute.Sitemap = products.map((product) => ({
     url: `${SITE_URL}/shop/${product.slug}`,
-    lastModified: product.updatedAt,
+    lastModified: new Date(),
     changeFrequency: "weekly",
     priority: 0.7,
   }));

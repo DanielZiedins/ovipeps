@@ -1,15 +1,18 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { Banknote, CheckCircle2, Package } from "lucide-react";
+import { Banknote, Clock3, Package } from "lucide-react";
 import { PaymentReferenceForm } from "@/components/checkout/payment-reference-form";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
+import { verifyOrderAccessToken } from "@/lib/order-access";
 import { getOrderByNumber } from "@/lib/orders";
 import { formatCurrency, formatDate } from "@/lib/utils";
 
 interface ConfirmationPageProps {
   params: Promise<{ orderNumber: string }>;
+  searchParams: Promise<{ token?: string }>;
 }
 
 export async function generateMetadata({
@@ -23,20 +26,30 @@ export async function generateMetadata({
 }
 
 async function getEtransferSettings() {
-  const settings = await db.siteSetting.findMany({
-    where: {
-      key: { in: ["etransfer_email", "etransfer_instructions"] },
-    },
-  });
-
-  return {
-    email:
-      settings.find((s) => s.key === "etransfer_email")?.value ??
-      "orders@ovipeps.ca",
+  const defaults = {
+    email: "orders@ovipeps.ca",
     instructions:
-      settings.find((s) => s.key === "etransfer_instructions")?.value ??
       "Please send your Interac e-Transfer and include your order number in the message field.",
   };
+
+  try {
+    const settings = await db.siteSetting.findMany({
+      where: {
+        key: { in: ["etransfer_email", "etransfer_instructions"] },
+      },
+    });
+
+    return {
+      email:
+        settings.find((s) => s.key === "etransfer_email")?.value ??
+        defaults.email,
+      instructions:
+        settings.find((s) => s.key === "etransfer_instructions")?.value ??
+        defaults.instructions,
+    };
+  } catch {
+    return defaults;
+  }
 }
 
 function formatShippingAddress(address: unknown) {
@@ -55,8 +68,10 @@ function formatShippingAddress(address: unknown) {
 
 export default async function OrderConfirmationPage({
   params,
+  searchParams,
 }: ConfirmationPageProps) {
   const { orderNumber } = await params;
+  const { token } = await searchParams;
   const [order, etransfer] = await Promise.all([
     getOrderByNumber(orderNumber),
     getEtransferSettings(),
@@ -66,26 +81,42 @@ export default async function OrderConfirmationPage({
     notFound();
   }
 
+  const session = await auth();
+  const role = (session?.user as { role?: string } | undefined)?.role;
+  const canAccess =
+    role === "ADMIN" ||
+    Boolean(session?.user?.id && session.user.id === order.userId) ||
+    verifyOrderAccessToken(token, order.orderNumber, order.email);
+
+  if (!canAccess) {
+    notFound();
+  }
+
   const shippingLines = formatShippingAddress(order.shippingAddress);
 
   return (
-    <div className="mx-auto max-w-4xl px-4 py-10 sm:px-6 lg:px-8">
+    <div className="mx-auto max-w-4xl px-4 py-12 sm:px-6 lg:px-8">
       <div className="mb-8 text-center">
-        <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-success/10">
-          <CheckCircle2 className="h-7 w-7 text-success" />
+        <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-warning to-amber-500 text-white shadow-xl shadow-warning/20">
+          <Clock3 className="h-8 w-8" />
         </div>
-        <h1 className="mt-4 text-3xl font-semibold tracking-tight text-navy-deep">
-          Order Confirmed
+        <p className="mt-5 text-xs font-bold uppercase tracking-[0.2em] text-warning">
+          Order received
+        </p>
+        <h1 className="mt-2 bg-gradient-to-r from-navy-deep via-sky to-cyan bg-clip-text text-3xl font-bold tracking-tight text-transparent sm:text-4xl">
+          Awaiting Payment
         </h1>
         <p className="mt-2 text-muted-foreground">
-          Thank you for your order. Complete your Interac e-Transfer to begin
-          processing.
+          Your order has been received but is not yet paid or confirmed. Complete
+          your Interac e-Transfer to begin processing.
         </p>
-        <p className="mt-1 font-mono text-sm text-navy">{order.orderNumber}</p>
+        <p className="mx-auto mt-3 w-fit rounded-full border border-sky/15 bg-sky/5 px-4 py-1.5 font-mono text-sm font-bold text-sky">
+          {order.orderNumber}
+        </p>
       </div>
 
       <div className="space-y-6">
-        <Card className="border-primary/20 bg-primary/5">
+        <Card className="overflow-hidden border-sky/20 bg-gradient-to-br from-sky/5 to-cyan/10 shadow-xl shadow-sky/10">
           <CardHeader>
             <div className="flex items-center gap-2">
               <Banknote className="h-5 w-5 text-navy" />
@@ -129,6 +160,7 @@ export default async function OrderConfirmationPage({
             <PaymentReferenceForm
               orderNumber={order.orderNumber}
               initialReference={order.paymentReference}
+              accessToken={token}
             />
           </CardContent>
         </Card>

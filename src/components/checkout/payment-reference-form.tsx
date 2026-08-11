@@ -8,11 +8,13 @@ import { Input } from "@/components/ui/input";
 interface PaymentReferenceFormProps {
   orderNumber: string;
   initialReference?: string | null;
+  accessToken?: string;
 }
 
 export function PaymentReferenceForm({
   orderNumber,
   initialReference,
+  accessToken,
 }: PaymentReferenceFormProps) {
   const [reference, setReference] = useState(initialReference ?? "");
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -31,7 +33,10 @@ export function PaymentReferenceForm({
     setError(null);
 
     try {
-      const response = await fetch(`/api/orders/${orderNumber}`, {
+      const tokenQuery = accessToken
+        ? `?token=${encodeURIComponent(accessToken)}`
+        : "";
+      const response = await fetch(`/api/orders/${orderNumber}${tokenQuery}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ paymentReference: reference.trim() }),

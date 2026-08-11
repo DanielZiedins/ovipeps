@@ -1,9 +1,10 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
 import { PageHero } from "@/components/content/page-hero";
-import { ShopCatalog, parseShopSearchParams } from "@/components/products/shop-catalog";
+import { ShopCatalog } from "@/components/products/shop-catalog";
 import { Skeleton } from "@/components/ui/skeleton";
 import { getProducts, getProductPriceRange, getResearchCategories, getSiteSetting } from "@/lib/products";
+import { parseShopSearchParams } from "@/lib/shop-params";
 
 export const metadata: Metadata = {
   title: "Shop Research Peptides",
@@ -50,8 +51,6 @@ async function ShopContent({ searchParams }: { searchParams: Record<string, stri
         priceRange={priceRange}
         initialFilters={filters}
         initialQuery={query}
-        pageTitle={getPageHeading(filter, category, query)}
-        pageDescription={getPageDescription(filter, category)}
       />
       {disclaimer && (
         <div className="mt-16 rounded-2xl border border-burgundy/20 bg-gradient-to-r from-burgundy/5 to-transparent px-6 py-5">

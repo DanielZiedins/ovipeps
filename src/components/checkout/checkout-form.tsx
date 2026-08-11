@@ -1,11 +1,24 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import Image from "next/image";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { Banknote, Loader2, ShoppingBag } from "lucide-react";
+import {
+  Banknote,
+  Check,
+  FileCheck2,
+  Loader2,
+  LockKeyhole,
+  MapPin,
+  PackageCheck,
+  ShoppingBag,
+  ShieldCheck,
+  Truck,
+} from "lucide-react";
 import { useCartStore } from "@/store/cart";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -52,6 +65,9 @@ const checkoutSchema = z.object({
     ),
   phone: z.string().optional(),
   affiliateCode: z.string().optional(),
+  researchUseAccepted: z.boolean().refine((value) => value, {
+    message: "Confirm that the order is for research use only",
+  }),
 });
 
 type CheckoutFormValues = z.infer<typeof checkoutSchema>;
@@ -77,6 +93,7 @@ export function CheckoutForm() {
     resolver: zodResolver(checkoutSchema),
     defaultValues: {
       affiliateCode: affiliateCode ?? "",
+      researchUseAccepted: false,
     },
   });
 
@@ -131,17 +148,30 @@ export function CheckoutForm() {
           })),
           discountCode,
           affiliateCode: values.affiliateCode || affiliateCode,
+          researchUseAccepted: values.researchUseAccepted,
         }),
       });
 
-      const data = await response.json();
+      const data = (await response.json()) as {
+        error?: string;
+        orderNumber?: string;
+        accessToken?: string;
+      };
 
       if (!response.ok) {
         throw new Error(data.error ?? "Failed to place order");
       }
 
+      if (!data.orderNumber || !data.accessToken) {
+        throw new Error("The order response was incomplete. Please contact support.");
+      }
+
       clearCart();
-      router.push(`/checkout/confirmation/${data.orderNumber}`);
+      router.push(
+        `/checkout/confirmation/${data.orderNumber}?token=${encodeURIComponent(
+          data.accessToken
+        )}`
+      );
     } catch (error) {
       setSubmitError(
         error instanceof Error ? error.message : "Failed to place order"
@@ -184,11 +214,61 @@ export function CheckoutForm() {
   }
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="grid gap-8 lg:grid-cols-5">
+    <form
+      onSubmit={handleSubmit(onSubmit)}
+      className="grid gap-8 lg:grid-cols-5"
+      noValidate
+    >
+      <div className="lg:col-span-5">
+        <ol
+          aria-label="Checkout progress"
+          className="grid grid-cols-3 overflow-hidden rounded-2xl border border-sky/15 bg-white shadow-sm"
+        >
+          {[
+            { icon: ShoppingBag, label: "Cart", state: "Complete" },
+            { icon: MapPin, label: "Details", state: "Current" },
+            { icon: PackageCheck, label: "Confirmation", state: "Next" },
+          ].map((step, index) => {
+            const Icon = step.icon;
+            return (
+              <li
+                key={step.label}
+                aria-current={index === 1 ? "step" : undefined}
+                className={`relative flex items-center justify-center gap-2 px-3 py-4 text-xs sm:text-sm ${
+                  index === 1
+                    ? "bg-gradient-to-r from-sky to-cyan font-bold text-white"
+                    : index === 0
+                      ? "font-semibold text-success"
+                      : "text-muted-foreground"
+                }`}
+              >
+                {index === 0 ? (
+                  <Check className="h-4 w-4" />
+                ) : (
+                  <Icon className="h-4 w-4" />
+                )}
+                <span>{step.label}</span>
+                <span className="sr-only">— {step.state}</span>
+              </li>
+            );
+          })}
+        </ol>
+      </div>
+
       <div className="space-y-6 lg:col-span-3">
-        <Card>
+        <Card className="overflow-hidden border-sky/15 shadow-sm">
           <CardHeader>
-            <CardTitle>Contact</CardTitle>
+            <div className="flex items-center gap-3">
+              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-sky/10 text-sky">
+                <LockKeyhole className="h-4 w-4" />
+              </div>
+              <div>
+                <p className="text-xs font-bold uppercase tracking-wider text-sky">
+                  Step 1
+                </p>
+                <CardTitle>Contact</CardTitle>
+              </div>
+            </div>
           </CardHeader>
           <CardContent>
             <Input
@@ -201,9 +281,19 @@ export function CheckoutForm() {
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="overflow-hidden border-sky/15 shadow-sm">
           <CardHeader>
-            <CardTitle>Shipping Address</CardTitle>
+            <div className="flex items-center gap-3">
+              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-cyan/10 text-cyan">
+                <MapPin className="h-4 w-4" />
+              </div>
+              <div>
+                <p className="text-xs font-bold uppercase tracking-wider text-cyan">
+                  Step 2
+                </p>
+                <CardTitle>Shipping Address</CardTitle>
+              </div>
+            </div>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="grid gap-4 sm:grid-cols-2">
@@ -275,26 +365,42 @@ export function CheckoutForm() {
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="overflow-hidden border-sky/15 shadow-sm">
           <CardHeader>
-            <CardTitle>Payment Method</CardTitle>
+            <div className="flex items-center gap-3">
+              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-teal-light/15 text-teal">
+                <Banknote className="h-5 w-5" />
+              </div>
+              <div>
+                <p className="text-xs font-bold uppercase tracking-wider text-teal">
+                  Step 3
+                </p>
+                <CardTitle>Payment Method</CardTitle>
+              </div>
+            </div>
           </CardHeader>
           <CardContent>
-            <div className="flex items-start gap-3 rounded-lg border border-primary/20 bg-primary/5 p-4">
-              <Banknote className="mt-0.5 h-5 w-5 shrink-0 text-navy" />
+            <div className="flex items-start gap-3 rounded-xl border border-sky/20 bg-gradient-to-br from-sky/5 to-cyan/10 p-4">
+              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-white text-sky shadow-sm">
+                <Banknote className="h-4 w-4" />
+              </div>
               <div>
-                <p className="font-medium text-foreground">Interac e-Transfer</p>
+                <p className="font-bold text-foreground">Interac e-Transfer</p>
                 <p className="mt-1 text-sm text-muted-foreground">
                   After placing your order, you&apos;ll receive instructions to
                   send payment via Interac e-Transfer. Your order will be
                   processed once payment is confirmed.
+                </p>
+                <p className="mt-3 inline-flex items-center gap-1.5 text-xs font-semibold text-sky">
+                  <FileCheck2 className="h-3.5 w-3.5" />
+                  Instructions appear immediately after ordering
                 </p>
               </div>
             </div>
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="border-sky/15 shadow-sm">
           <CardHeader>
             <CardTitle>Referral Code (optional)</CardTitle>
           </CardHeader>
@@ -308,26 +414,74 @@ export function CheckoutForm() {
             />
           </CardContent>
         </Card>
+
+        <Card className="border-amber-200/70 bg-gradient-to-br from-amber-50 to-orange-50/70 shadow-sm">
+          <CardContent className="pt-6">
+            <label className="flex cursor-pointer items-start gap-3">
+              <input
+                type="checkbox"
+                className="mt-0.5 h-4 w-4 rounded border-amber-300 text-sky focus:ring-sky"
+                {...register("researchUseAccepted")}
+              />
+              <span className="text-sm leading-relaxed text-foreground">
+                I confirm that these products are being purchased for laboratory
+                research use only, not for human or veterinary consumption, and
+                I agree to the{" "}
+                <Link
+                  href="/research-disclaimer"
+                  target="_blank"
+                  className="font-semibold text-sky underline-offset-2 hover:underline"
+                >
+                  research disclaimer
+                </Link>
+                .
+              </span>
+            </label>
+            {errors.researchUseAccepted?.message && (
+              <p role="alert" className="mt-2 text-sm text-error">
+                {errors.researchUseAccepted.message}
+              </p>
+            )}
+          </CardContent>
+        </Card>
       </div>
 
       <div className="lg:col-span-2">
-        <Card className="sticky top-6">
-          <CardHeader>
-            <CardTitle>Order Summary</CardTitle>
+        <Card className="sticky top-28 overflow-hidden border-sky/20 shadow-xl shadow-sky/10">
+          <CardHeader className="border-b border-sky/10 bg-gradient-to-r from-sky/10 to-cyan/10">
+            <div className="flex items-center justify-between">
+              <CardTitle>Order Summary</CardTitle>
+              <span className="rounded-full bg-white px-2.5 py-1 text-xs font-bold text-sky shadow-sm">
+                {items.reduce((count, item) => count + item.quantity, 0)} items
+              </span>
+            </div>
           </CardHeader>
           <CardContent className="space-y-4">
             <ul className="space-y-3">
               {items.map((item) => (
                 <li
                   key={item.variantId}
-                  className="flex items-start justify-between gap-3 text-sm"
+                  className="flex items-center gap-3 rounded-xl border border-border/60 bg-gradient-to-br from-white to-sky/5 p-3 text-sm"
                 >
-                  <div className="min-w-0">
-                    <p className="font-medium text-foreground">{item.name}</p>
+                  <div className="relative h-14 w-14 shrink-0 overflow-hidden rounded-xl bg-white shadow-sm">
+                    {item.imageUrl ? (
+                      <Image
+                        src={item.imageUrl}
+                        alt=""
+                        fill
+                        sizes="56px"
+                        className="object-contain p-1"
+                      />
+                    ) : (
+                      <ShoppingBag className="absolute inset-0 m-auto h-5 w-5 text-muted-foreground/30" />
+                    )}
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate font-bold text-foreground">{item.name}</p>
                     <p className="text-muted-foreground">{item.variantName}</p>
                     <p className="text-muted-foreground">Qty: {item.quantity}</p>
                   </div>
-                  <span className="shrink-0 font-medium">
+                  <span className="shrink-0 font-bold text-navy-deep">
                     {formatCurrency(item.price * item.quantity)}
                   </span>
                 </li>
@@ -348,9 +502,25 @@ export function CheckoutForm() {
                 </span>
               </div>
               {totals.cartSubtotal < SHIPPING_THRESHOLD && (
-                <p className="text-xs text-muted-foreground">
-                  Free shipping on orders over {formatCurrency(SHIPPING_THRESHOLD)}
-                </p>
+                <div className="rounded-xl bg-sky/5 p-3">
+                  <p className="flex items-center gap-1.5 text-xs font-medium text-sky">
+                    <Truck className="h-3.5 w-3.5" />
+                    Add{" "}
+                    {formatCurrency(SHIPPING_THRESHOLD - totals.cartSubtotal)}{" "}
+                    more for free shipping
+                  </p>
+                  <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-sky/10">
+                    <div
+                      className="h-full rounded-full bg-gradient-to-r from-sky to-cyan transition-all"
+                      style={{
+                        width: `${Math.min(
+                          100,
+                          (totals.cartSubtotal / SHIPPING_THRESHOLD) * 100
+                        )}%`,
+                      }}
+                    />
+                  </div>
+                </div>
               )}
               <div className="flex justify-between border-t border-border pt-2 text-base font-semibold">
                 <span>Total</span>
@@ -360,14 +530,17 @@ export function CheckoutForm() {
             </div>
 
             {submitError && (
-              <p className="rounded-md bg-error/10 px-3 py-2 text-sm text-error">
+              <p
+                role="alert"
+                className="rounded-xl border border-error/15 bg-error/10 px-3 py-2 text-sm text-error"
+              >
                 {submitError}
               </p>
             )}
 
             <Button
               type="submit"
-              variant="primary"
+              variant="glow"
               size="lg"
               className="w-full"
               disabled={isSubmitting}
@@ -381,6 +554,22 @@ export function CheckoutForm() {
                 "Place Order"
               )}
             </Button>
+
+            <div className="grid grid-cols-3 gap-2 border-t border-border pt-4">
+              {[
+                { icon: LockKeyhole, label: "Protected form" },
+                { icon: MapPin, label: "Ships in Canada" },
+                { icon: ShieldCheck, label: "Clear policies" },
+              ].map(({ icon: Icon, label }) => (
+                <div
+                  key={label}
+                  className="flex flex-col items-center gap-1.5 text-center text-[10px] font-semibold leading-tight text-muted-foreground"
+                >
+                  <Icon className="h-4 w-4 text-sky" />
+                  {label}
+                </div>
+              ))}
+            </div>
           </CardContent>
         </Card>
       </div>

@@ -75,7 +75,7 @@ export function CartDrawer() {
                   <Truck className="h-3.5 w-3.5 text-sky" />
                   {remaining > 0 ? (
                     <span className="text-muted-foreground">
-                      Add <strong className="text-sky">{formatCurrency(remaining)}</strong> for free expedited shipping
+                      Add <strong className="text-sky">{formatCurrency(remaining)}</strong> for free shipping
                     </span>
                   ) : (
                     <span className="font-semibold text-success">🎉 You qualify for free shipping!</span>
@@ -156,6 +156,7 @@ export function CartDrawer() {
                             <button
                               type="button"
                               onClick={() => updateQuantity(item.variantId, item.quantity - 1)}
+                              aria-label={`Decrease quantity of ${item.name}`}
                               className="flex h-7 w-7 items-center justify-center rounded-lg border border-border bg-card transition-colors hover:bg-sky/10"
                             >
                               <Minus className="h-3.5 w-3.5" />
@@ -164,6 +165,7 @@ export function CartDrawer() {
                             <button
                               type="button"
                               onClick={() => updateQuantity(item.variantId, item.quantity + 1)}
+                              aria-label={`Increase quantity of ${item.name}`}
                               className="flex h-7 w-7 items-center justify-center rounded-lg border border-border bg-card transition-colors hover:bg-sky/10"
                             >
                               <Plus className="h-3.5 w-3.5" />

@@ -83,14 +83,14 @@ export default function AffiliatesPage() {
         <div className="flex flex-wrap gap-4">
           <Link
             href="/affiliates/apply"
-            className="inline-flex h-12 items-center gap-2 rounded-lg bg-primary px-6 text-sm font-medium text-primary-foreground transition-colors hover:bg-navy-deep"
+            className="inline-flex h-12 items-center gap-2 rounded-xl bg-gradient-to-r from-sky to-cyan px-6 text-sm font-bold text-white shadow-lg shadow-sky/25 transition-all hover:shadow-xl hover:shadow-sky/35"
           >
             Apply now
             <ArrowRight className="h-4 w-4" />
           </Link>
           <Link
             href="/affiliates/terms"
-            className="inline-flex h-12 items-center rounded-lg border border-border bg-card px-6 text-sm font-medium text-foreground transition-colors hover:bg-muted"
+            className="inline-flex h-12 items-center rounded-xl border border-sky/20 bg-white/80 px-6 text-sm font-semibold text-foreground backdrop-blur-sm transition-all hover:border-sky/40 hover:bg-white"
           >
             Program terms
           </Link>
@@ -120,9 +120,9 @@ export default function AffiliatesPage() {
             {benefits.map((benefit) => (
               <div
                 key={benefit.title}
-                className="rounded-xl border border-border bg-card p-6"
+                className="group rounded-2xl border border-sky/10 bg-white p-6 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:border-sky/25 hover:shadow-xl hover:shadow-sky/10"
               >
-                <div className="flex h-11 w-11 items-center justify-center rounded-lg bg-navy/5 text-navy">
+                <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-sky to-cyan text-white shadow-md shadow-sky/25 transition-transform group-hover:scale-110">
                   <benefit.icon className="h-5 w-5" />
                 </div>
                 <h3 className="mt-4 font-semibold text-foreground">
@@ -150,9 +150,9 @@ export default function AffiliatesPage() {
             {steps.map((item) => (
               <div
                 key={item.step}
-                className="relative rounded-xl border border-border bg-muted/20 p-6"
+                className="relative rounded-2xl border border-sky/10 bg-gradient-to-br from-sky/5 to-cyan/5 p-6 transition-all hover:border-sky/25 hover:shadow-lg hover:shadow-sky/10"
               >
-                <span className="text-3xl font-semibold text-teal/30">
+                <span className="bg-gradient-to-r from-sky to-cyan bg-clip-text text-3xl font-bold text-transparent">
                   {item.step}
                 </span>
                 <h3 className="mt-3 font-semibold text-foreground">{item.title}</h3>
@@ -164,15 +164,15 @@ export default function AffiliatesPage() {
           </div>
         </section>
 
-        <section className="mt-20 grid gap-8 rounded-2xl border border-border bg-gradient-to-br from-navy/5 via-card to-teal/5 p-8 lg:grid-cols-2 lg:p-12">
+        <section className="mt-20 grid gap-8 overflow-hidden rounded-3xl border border-sky/15 bg-gradient-to-br from-navy-deep via-navy to-sky p-8 text-white lg:grid-cols-2 lg:p-12">
           <div>
-            <div className="flex h-11 w-11 items-center justify-center rounded-lg bg-teal/10 text-teal">
-              <Users className="h-5 w-5" />
+            <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-white/15 backdrop-blur-sm">
+              <Users className="h-5 w-5 text-cyan-bright" />
             </div>
-            <h2 className="mt-4 text-2xl font-semibold text-navy-deep">
+            <h2 className="mt-4 text-2xl font-bold">
               Who should apply?
             </h2>
-            <p className="mt-3 leading-relaxed text-muted-foreground">
+            <p className="mt-3 leading-relaxed text-white/75">
               We work with content creators, educators, and publishers who reach
               qualified laboratory and research audiences. Partners must promote
               OVIPeps accurately — emphasizing research-use-only classification
@@ -180,27 +180,27 @@ export default function AffiliatesPage() {
             </p>
           </div>
           <div className="flex flex-col justify-center">
-            <ul className="space-y-3 text-sm text-muted-foreground">
+            <ul className="space-y-3 text-sm text-white/70">
               <li className="flex items-start gap-2">
-                <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-teal" />
+                <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-cyan-bright" />
                 Science communicators and research educators
               </li>
               <li className="flex items-start gap-2">
-                <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-teal" />
+                <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-cyan-bright" />
                 Laboratory procurement blogs and newsletters
               </li>
               <li className="flex items-start gap-2">
-                <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-teal" />
+                <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-cyan-bright" />
                 Canadian research community publishers
               </li>
               <li className="flex items-start gap-2">
-                <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-teal" />
+                <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-cyan-bright" />
                 Podcast and video creators with qualified audiences
               </li>
             </ul>
             <Link
               href="/affiliates/apply"
-              className="mt-8 inline-flex h-11 w-fit items-center gap-2 rounded-lg bg-primary px-6 text-sm font-medium text-primary-foreground transition-colors hover:bg-navy-deep"
+              className="mt-8 inline-flex h-12 w-fit items-center gap-2 rounded-xl bg-white px-6 text-sm font-bold text-navy-deep shadow-lg transition-all hover:bg-cyan-bright hover:text-white"
             >
               Start your application
               <ArrowRight className="h-4 w-4" />

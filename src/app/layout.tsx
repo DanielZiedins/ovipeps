@@ -4,6 +4,8 @@ import { AnnouncementBar } from "@/components/layout/announcement-bar";
 import { Footer } from "@/components/layout/footer";
 import { Header } from "@/components/layout/header";
 import { AffiliateTracker } from "@/components/affiliate-tracker";
+import { ScrollToTop } from "@/components/layout/scroll-to-top";
+import { ScrollProgress } from "@/components/motion/scroll-progress";
 import { Providers } from "@/components/providers";
 import { SITE_NAME, SITE_URL } from "@/lib/content";
 import { getAnnouncements } from "@/lib/safe-db";
@@ -23,7 +25,7 @@ export const metadata: Metadata = {
     template: `%s | ${SITE_NAME}`,
   },
   description:
-    "Premium research-grade peptides and laboratory supplies. Third-party tested, COA-documented, and fulfilled from within Canada.",
+    "Premium research peptides and laboratory supplies with published batch documentation where available, fulfilled from within Canada.",
   keywords: [
     "research peptides",
     "laboratory peptides",
@@ -38,7 +40,7 @@ export const metadata: Metadata = {
     siteName: SITE_NAME,
     title: `${SITE_NAME} — Research-Grade Peptides`,
     description:
-      "Premium research-grade peptides and laboratory supplies. Third-party tested, COA-documented, and fulfilled from within Canada.",
+      "Premium research peptides and laboratory supplies with published batch documentation where available, fulfilled from within Canada.",
     images: [
       {
         url: "/images/brand/logo.png",
@@ -50,7 +52,7 @@ export const metadata: Metadata = {
     card: "summary",
     title: `${SITE_NAME} — Research-Grade Peptides`,
     description:
-      "Premium research-grade peptides and laboratory supplies. Third-party tested, COA-documented, and fulfilled from within Canada.",
+      "Premium research peptides and laboratory supplies with published batch documentation where available, fulfilled from within Canada.",
   },
   robots: {
     index: true,
@@ -90,10 +92,12 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
       </head>
       <body className="flex min-h-full flex-col font-sans">
         <Providers>
+          <ScrollProgress />
           <AnnouncementBar announcements={announcements} />
           <Header />
           <main className="flex-1">{children}</main>
           <Footer />
+          <ScrollToTop />
           <AffiliateTracker />
         </Providers>
       </body>

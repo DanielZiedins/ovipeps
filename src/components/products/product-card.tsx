@@ -1,10 +1,9 @@
 "use client";
 
-import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { motion } from "framer-motion";
-import { Eye, Heart, ShoppingBag, ShieldCheck, Sparkles, Zap } from "lucide-react";
+import { Eye, ShoppingBag, ShieldCheck, Sparkles, Zap } from "lucide-react";
 import { cn, formatCurrency } from "@/lib/utils";
 import { useCartStore } from "@/store/cart";
 import {
@@ -29,7 +28,6 @@ export function ProductCard({
   className,
   index = 0,
 }: ProductCardProps) {
-  const [wishlisted, setWishlisted] = useState(false);
   const addItem = useCartStore((s) => s.addItem);
 
   const lowestPrice = getLowestPrice(product.variants);
@@ -39,8 +37,13 @@ export function ProductCard({
   const hasMultipleVariants = product.variants.length > 1;
 
   const handleAddToCart = (e: React.MouseEvent) => {
+    if (hasMultipleVariants && !onQuickView) return;
     e.preventDefault();
     e.stopPropagation();
+    if (hasMultipleVariants && onQuickView) {
+      onQuickView(product);
+      return;
+    }
     if (!defaultVariant || !inStock) return;
     addItem({
       productId: product.id,
@@ -114,21 +117,8 @@ export function ProductCard({
             )}
           </div>
 
-          <button
-            type="button"
-            onClick={(e) => { e.preventDefault(); e.stopPropagation(); setWishlisted((p) => !p); }}
-            aria-label={wishlisted ? "Remove from wishlist" : "Add to wishlist"}
-            className={cn(
-              "absolute right-3 top-3 flex h-9 w-9 items-center justify-center rounded-full bg-white/90 shadow-md backdrop-blur-sm transition-all",
-              "opacity-0 scale-75 group-hover:opacity-100 group-hover:scale-100",
-              wishlisted ? "text-burgundy opacity-100 scale-100" : "text-muted-foreground hover:text-burgundy"
-            )}
-          >
-            <Heart className="h-4 w-4" fill={wishlisted ? "currentColor" : "none"} />
-          </button>
-
           {/* Hover actions */}
-          <div className="absolute inset-x-0 bottom-0 flex translate-y-full gap-2 p-3 transition-transform duration-300 group-hover:translate-y-0">
+          <div className="absolute inset-x-0 bottom-0 flex translate-y-0 gap-2 p-3 transition-transform duration-300 md:translate-y-full md:group-hover:translate-y-0">
             {onQuickView && (
               <button
                 type="button"
@@ -151,7 +141,11 @@ export function ProductCard({
               )}
             >
               <ShoppingBag className="h-3.5 w-3.5" />
-              {inStock ? "Add to Cart" : "Out of Stock"}
+              {!inStock
+                ? "Out of Stock"
+                : hasMultipleVariants
+                  ? "Choose Options"
+                  : "Add to Cart"}
             </button>
           </div>
         </div>

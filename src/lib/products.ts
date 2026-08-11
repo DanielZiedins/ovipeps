@@ -209,10 +209,68 @@ export async function getProducts(
 }
 
 export async function getProductBySlug(slug: string): Promise<ProductDetail | null> {
-  return db.product.findFirst({
-    where: { slug, published: true },
-    include: productDetailInclude,
-  });
+  try {
+    const product = await db.product.findFirst({
+      where: { slug, published: true },
+      include: productDetailInclude,
+    });
+    if (product) return product;
+  } catch {
+    // fall through to static catalog
+  }
+
+  const fallback = FALLBACK_PRODUCTS.find((p) => p.slug === slug);
+  if (!fallback) return null;
+
+  return {
+    id: fallback.id,
+    name: fallback.name,
+    slug: fallback.slug,
+    imageUrl: fallback.imageUrl ?? null,
+    researchCategory: fallback.researchCategory ?? null,
+    shortDescription: fallback.shortDescription ?? null,
+    description: fallback.shortDescription ?? null,
+    metaTitle: null,
+    metaDescription: null,
+    isNew: fallback.isNew ?? false,
+    featured: fallback.featured ?? false,
+    published: true,
+    sortOrder: 0,
+    category: "RESEARCH_PEPTIDE" as const,
+    createdAt: new Date(),
+    updatedAt: new Date(),
+    variants: fallback.variants.map((v, i) => ({
+      id: v.id,
+      productId: fallback.id,
+      name: v.name,
+      sku: v.sku,
+      price: v.price,
+      compareAtPrice: null,
+      concentration: null,
+      size: v.name,
+      stockQuantity: v.inStock ? 100 : 0,
+      inStock: v.inStock,
+      isDefault: v.isDefault ?? i === 0,
+      sortOrder: i,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    })),
+    batches: [],
+    coaDocuments: fallback.hasCoa
+      ? [
+          {
+            id: `coa-${fallback.id}`,
+            productId: fallback.id,
+            batchNumber: "FB-001",
+            documentUrl: null,
+            testingDate: null,
+            published: true,
+            createdAt: new Date(),
+            updatedAt: new Date(),
+          },
+        ]
+      : [],
+  } as unknown as ProductDetail;
 }
 
 export async function getFeaturedProducts(limit = 8): Promise<ProductCardData[]> {
@@ -234,18 +292,27 @@ export async function getRelatedProducts(
   researchCategory: string | null,
   limit = 4
 ): Promise<ProductCardData[]> {
-  const products = await db.product.findMany({
-    where: {
-      published: true,
-      id: { not: productId },
-      ...(researchCategory ? { researchCategory } : {}),
-    },
-    include: productCardInclude,
-    orderBy: [{ featured: "desc" }, { sortOrder: "asc" }],
-    take: limit,
-  });
+  try {
+    const products = await db.product.findMany({
+      where: {
+        published: true,
+        id: { not: productId },
+        ...(researchCategory ? { researchCategory } : {}),
+      },
+      include: productCardInclude,
+      orderBy: [{ featured: "desc" }, { sortOrder: "asc" }],
+      take: limit,
+    });
 
-  return products.map(getProductCardData);
+    if (products.length > 0) return products.map(getProductCardData);
+  } catch {
+    // fall through
+  }
+
+  return FALLBACK_PRODUCTS.filter(
+    (p) => p.id !== productId && (!researchCategory || p.researchCategory === researchCategory)
+  )
+    .slice(0, limit);
 }
 
 export async function getResearchCategories(): Promise<string[]> {
@@ -278,13 +345,17 @@ export async function getProductPriceRange(): Promise<{ min: number; max: number
 }
 
 export async function getProductFaqs() {
-  return db.faqItem.findMany({
-    where: {
-      published: true,
-      category: { in: ["PRODUCTS", "RESEARCH", "SHIPPING", "COA", "GENERAL"] },
-    },
-    orderBy: [{ sortOrder: "asc" }],
-  });
+  try {
+    return await db.faqItem.findMany({
+      where: {
+        published: true,
+        category: { in: ["PRODUCTS", "RESEARCH", "SHIPPING", "COA", "GENERAL"] },
+      },
+      orderBy: [{ sortOrder: "asc" }],
+    });
+  } catch {
+    return [];
+  }
 }
 
 export async function getSiteSetting(key: string): Promise<string | null> {

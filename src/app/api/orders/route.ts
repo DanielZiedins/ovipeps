@@ -2,10 +2,13 @@ import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { createOrder } from "@/lib/orders";
 import type { CreateOrderInput } from "@/lib/orders";
+import { createOrderAccessToken } from "@/lib/order-access";
 
 export async function POST(request: Request) {
   try {
-    const body = (await request.json()) as CreateOrderInput;
+    const body = (await request.json()) as CreateOrderInput & {
+      researchUseAccepted?: boolean;
+    };
     const session = await auth();
 
     if (!body.email?.trim()) {
@@ -23,6 +26,29 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Cart is empty" }, { status: 400 });
     }
 
+    if (
+      body.items.some(
+        (item) =>
+          !item.productId ||
+          !item.variantId ||
+          !Number.isInteger(item.quantity) ||
+          item.quantity < 1 ||
+          item.quantity > 100
+      )
+    ) {
+      return NextResponse.json(
+        { error: "One or more cart items are invalid" },
+        { status: 400 }
+      );
+    }
+
+    if (!body.researchUseAccepted) {
+      return NextResponse.json(
+        { error: "Research-use confirmation is required" },
+        { status: 400 }
+      );
+    }
+
     const order = await createOrder({
       ...body,
       userId: session?.user?.id ?? null,
@@ -33,10 +59,30 @@ export async function POST(request: Request) {
       orderNumber: order.orderNumber,
       total: order.total,
       status: order.status,
+      accessToken: createOrderAccessToken(order.orderNumber, order.email),
     });
   } catch (error) {
-    const message =
-      error instanceof Error ? error.message : "Failed to create order";
-    return NextResponse.json({ error: message }, { status: 400 });
+    const message = error instanceof Error ? error.message : "";
+    const safeMessages = [
+      "Cart is empty",
+      "Invalid discount code",
+      "Discount code is not yet active",
+      "Discount code has expired",
+      "Discount code has reached its usage limit",
+      "Product and variant mismatch",
+    ];
+    const isSafe =
+      safeMessages.some((safeMessage) => message.startsWith(safeMessage)) ||
+      message.endsWith(" is out of stock") ||
+      message.startsWith("Minimum order amount");
+
+    return NextResponse.json(
+      {
+        error: isSafe
+          ? message
+          : "We could not place the order right now. Please try again or contact support.",
+      },
+      { status: isSafe ? 400 : 503 }
+    );
   }
 }

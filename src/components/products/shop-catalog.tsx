@@ -3,7 +3,7 @@
 import { useCallback, useState, useTransition } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { motion } from "framer-motion";
-import { Filter, Search, Sparkles, X } from "lucide-react";
+import { Filter, Search, X } from "lucide-react";
 import { ProductCard } from "@/components/products/product-card";
 import { ProductFilters } from "@/components/products/product-filters";
 import { ProductGrid } from "@/components/products/product-grid";
@@ -13,8 +13,6 @@ import {
   DEFAULT_PRODUCT_FILTERS,
   type ProductCardData,
   type ProductFilterState,
-  type SortOption,
-  type AvailabilityFilter,
 } from "@/types/product";
 
 interface ShopCatalogProps {
@@ -23,8 +21,6 @@ interface ShopCatalogProps {
   priceRange: { min: number; max: number };
   initialFilters: ProductFilterState;
   initialQuery: string;
-  pageTitle: string;
-  pageDescription: string;
 }
 
 function filtersToSearchParams(
@@ -52,8 +48,6 @@ export function ShopCatalog({
   priceRange,
   initialFilters,
   initialQuery,
-  pageTitle,
-  pageDescription,
 }: ShopCatalogProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -89,21 +83,6 @@ export function ShopCatalog({
 
   return (
     <>
-      <ScrollReveal>
-        <div className="mb-10">
-          <div className="mb-3 inline-flex items-center gap-1.5 rounded-full bg-sky/10 px-3 py-1 text-xs font-bold uppercase tracking-widest text-sky">
-            <Sparkles className="h-3 w-3" />
-            Research Catalog
-          </div>
-          <h1 className="text-3xl font-bold tracking-tight text-navy-deep sm:text-4xl lg:text-5xl">
-            {pageTitle}
-          </h1>
-          <p className="mt-3 max-w-2xl text-base leading-relaxed text-muted-foreground">
-            {pageDescription}
-          </p>
-        </div>
-      </ScrollReveal>
-
       <ScrollReveal delay={0.1}>
         <form onSubmit={handleSearch} className="mb-8">
           <div className="relative max-w-2xl">
@@ -218,40 +197,4 @@ export function ShopCatalog({
       <QuickViewModal product={quickViewProduct} open={quickViewProduct !== null} onClose={() => setQuickViewProduct(null)} />
     </>
   );
-}
-
-export function parseShopSearchParams(
-  searchParams: Record<string, string | string[] | undefined>
-): {
-  filters: ProductFilterState;
-  query: string;
-  filter?: string;
-  category?: string;
-} {
-  const get = (key: string) => {
-    const value = searchParams[key];
-    return Array.isArray(value) ? value[0] : value;
-  };
-
-  const categoriesParam = get("categories");
-  const sort = get("sort") as SortOption | undefined;
-  const availability = get("availability") as AvailabilityFilter | undefined;
-
-  return {
-    query: get("q") ?? "",
-    filter: get("filter"),
-    category: get("category"),
-    filters: {
-      categories: categoriesParam ? categoriesParam.split(",").filter(Boolean) : [],
-      priceMin: get("priceMin") ? Number(get("priceMin")) : null,
-      priceMax: get("priceMax") ? Number(get("priceMax")) : null,
-      availability:
-        availability && ["all", "in-stock", "out-of-stock"].includes(availability) ? availability : "all",
-      coaOnly: get("coaOnly") === "true",
-      sort:
-        sort && ["featured", "price-asc", "price-desc", "name-asc", "name-desc", "newest"].includes(sort)
-          ? sort
-          : "featured",
-    },
-  };
 }

@@ -29,13 +29,17 @@ function mapCoaDocument(doc: CoaWithProduct): CoaDocumentSummary {
 }
 
 export async function getPublishedCoaDocuments(): Promise<CoaDocumentSummary[]> {
-  const documents = await db.coaDocument.findMany({
-    where: { published: true },
-    include: { product: { select: { name: true, slug: true } } },
-    orderBy: [{ testingDate: "desc" }, { createdAt: "desc" }],
-  });
+  try {
+    const documents = await db.coaDocument.findMany({
+      where: { published: true },
+      include: { product: { select: { name: true, slug: true } } },
+      orderBy: [{ testingDate: "desc" }, { createdAt: "desc" }],
+    });
 
-  return documents.map(mapCoaDocument);
+    return documents.map(mapCoaDocument);
+  } catch {
+    return [];
+  }
 }
 
 export async function searchPublishedCoaDocuments(
@@ -44,19 +48,23 @@ export async function searchPublishedCoaDocuments(
   const trimmed = query.trim();
   if (!trimmed) return getPublishedCoaDocuments();
 
-  const documents = await db.coaDocument.findMany({
-    where: {
-      published: true,
-      OR: [
-        { batchNumber: { contains: trimmed } },
-        { lotNumber: { contains: trimmed } },
-        { product: { name: { contains: trimmed } } },
-        { testingProvider: { contains: trimmed } },
-      ],
-    },
-    include: { product: { select: { name: true, slug: true } } },
-    orderBy: [{ testingDate: "desc" }, { createdAt: "desc" }],
-  });
+  try {
+    const documents = await db.coaDocument.findMany({
+      where: {
+        published: true,
+        OR: [
+          { batchNumber: { contains: trimmed } },
+          { lotNumber: { contains: trimmed } },
+          { product: { name: { contains: trimmed } } },
+          { testingProvider: { contains: trimmed } },
+        ],
+      },
+      include: { product: { select: { name: true, slug: true } } },
+      orderBy: [{ testingDate: "desc" }, { createdAt: "desc" }],
+    });
 
-  return documents.map(mapCoaDocument);
+    return documents.map(mapCoaDocument);
+  } catch {
+    return [];
+  }
 }

@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ArrowRight, Clock } from "lucide-react";
+import { ArrowRight, BookOpen, Clock } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { ARTICLE_CATEGORY_LABELS } from "@/lib/content";
 import { formatDate } from "@/lib/utils";
@@ -24,8 +24,9 @@ export function ArticleCard({ article, featured }: ArticleCardProps) {
   return (
     <Link
       href={`/research/${article.slug}`}
-      className="group flex h-full flex-col rounded-xl border border-border bg-card p-6 transition-all hover:border-accent/30 hover:shadow-lg hover:shadow-navy/5"
+      className="group relative flex h-full flex-col overflow-hidden rounded-2xl border border-sky/10 bg-gradient-to-br from-white via-white to-sky/5 p-6 shadow-sm transition-all duration-300 hover:-translate-y-1.5 hover:border-sky/30 hover:shadow-xl hover:shadow-sky/10"
     >
+      <div className="absolute inset-x-0 top-0 h-1 origin-left scale-x-0 bg-gradient-to-r from-sky via-cyan to-teal-light transition-transform duration-300 group-hover:scale-x-100" />
       <div className="mb-3 flex items-center justify-between gap-2">
         <Badge variant="research">
           {ARTICLE_CATEGORY_LABELS[article.category]}
@@ -35,6 +36,10 @@ export function ArticleCard({ article, featured }: ArticleCardProps) {
             Featured
           </span>
         ) : null}
+      </div>
+
+      <div className="mb-4 flex h-11 w-11 items-center justify-center rounded-xl bg-gradient-to-br from-sky/10 to-cyan/10 text-sky transition-all group-hover:from-sky group-hover:to-cyan group-hover:text-white group-hover:shadow-lg group-hover:shadow-sky/20">
+        <BookOpen className="h-5 w-5" />
       </div>
 
       <h3 className="text-lg font-semibold leading-snug text-foreground transition-colors group-hover:text-navy">

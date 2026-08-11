@@ -3,7 +3,7 @@ import { PageHero } from "@/components/content/page-hero";
 import { Breadcrumb } from "@/components/content/breadcrumb";
 import { FaqAccordion } from "@/components/content/faq-accordion";
 import { FAQ_CATEGORIES, FAQ_CATEGORY_LABELS } from "@/lib/content";
-import { db } from "@/lib/db";
+import { getPublishedFaqs } from "@/lib/content-data";
 import type { FaqCategory } from "@/generated/prisma/enums";
 
 export const metadata: Metadata = {
@@ -13,15 +13,7 @@ export const metadata: Metadata = {
 };
 
 export default async function FaqPage() {
-  const faqs = await db.faqItem.findMany({
-    where: { published: true },
-    orderBy: [{ category: "asc" }, { sortOrder: "asc" }],
-    select: {
-      question: true,
-      answer: true,
-      category: true,
-    },
-  });
+  const faqs = await getPublishedFaqs();
 
   const faqsByCategory = FAQ_CATEGORIES.reduce(
     (acc, category) => {
@@ -73,11 +65,16 @@ export default async function FaqPage() {
             if (!items.length) return null;
 
             return (
-              <section key={category} id={category.toLowerCase()}>
-                <h2 className="text-xl font-semibold text-navy-deep">
+              <section
+                key={category}
+                id={category.toLowerCase()}
+                className="scroll-mt-28"
+              >
+                <h2 className="flex items-center gap-3 text-xl font-bold text-navy-deep">
+                  <span className="h-6 w-1 rounded-full bg-gradient-to-b from-sky to-cyan" />
                   {FAQ_CATEGORY_LABELS[category]}
                 </h2>
-                <div className="mt-4 rounded-xl border border-border bg-card px-5">
+                <div className="mt-4 overflow-hidden rounded-2xl border border-sky/10 bg-gradient-to-br from-card to-sky/5 px-5 shadow-lg shadow-sky/5">
                   {items.map((faq) => (
                     <FaqAccordion
                       key={faq.question}

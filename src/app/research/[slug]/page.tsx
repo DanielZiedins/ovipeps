@@ -8,7 +8,11 @@ import { MarkdownContent } from "@/components/content/markdown-content";
 import { TableOfContents } from "@/components/content/table-of-contents";
 import { Badge } from "@/components/ui/badge";
 import { SITE_NAME, SITE_URL, ARTICLE_CATEGORY_LABELS } from "@/lib/content";
-import { db } from "@/lib/db";
+import {
+  getPublishedArticle,
+  getPublishedArticles,
+  getRelatedArticles,
+} from "@/lib/content-data";
 import { extractHeadings } from "@/lib/markdown";
 import { formatDate, getReadingTime } from "@/lib/utils";
 
@@ -17,30 +21,15 @@ interface ArticlePageProps {
 }
 
 export async function generateStaticParams() {
-  try {
-    const articles = await db.article.findMany({
-      where: { published: true },
-      select: { slug: true },
-    });
-    return articles.map((article) => ({ slug: article.slug }));
-  } catch {
-    return [];
-  }
+  const articles = await getPublishedArticles();
+  return articles.map((article) => ({ slug: article.slug }));
 }
 
 export async function generateMetadata({
   params,
 }: ArticlePageProps): Promise<Metadata> {
   const { slug } = await params;
-  const article = await db.article.findUnique({
-    where: { slug, published: true },
-    select: {
-      title: true,
-      excerpt: true,
-      metaTitle: true,
-      metaDescription: true,
-    },
-  });
+  const article = await getPublishedArticle(slug);
 
   if (!article) {
     return { title: "Article Not Found" };
@@ -54,47 +43,15 @@ export async function generateMetadata({
 
 export default async function ArticlePage({ params }: ArticlePageProps) {
   const { slug } = await params;
-
-  const article = await db.article.findUnique({
-    where: { slug, published: true },
-    select: {
-      id: true,
-      title: true,
-      slug: true,
-      excerpt: true,
-      content: true,
-      category: true,
-      author: true,
-      readingTime: true,
-      publishedAt: true,
-      updatedAt: true,
-    },
-  });
+  const article = await getPublishedArticle(slug);
 
   if (!article) notFound();
 
-  const related = await db.article.findMany({
-    where: {
-      published: true,
-      category: article.category,
-      slug: { not: article.slug },
-    },
-    orderBy: { publishedAt: "desc" },
-    take: 3,
-    select: {
-      title: true,
-      slug: true,
-      excerpt: true,
-      category: true,
-      author: true,
-      readingTime: true,
-      publishedAt: true,
-    },
-  });
+  const related = await getRelatedArticles(article);
 
   const toc = extractHeadings(article.content);
   const readingTime = article.readingTime ?? getReadingTime(article.content);
-  const publishedDate = article.publishedAt ?? article.updatedAt;
+  const publishedDate = article.publishedAt;
   const articleUrl = `${SITE_URL}/research/${article.slug}`;
 
   const jsonLd = {
@@ -125,8 +82,10 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
 
-      <div className="border-b border-border bg-card molecular-bg">
-        <div className="mx-auto max-w-7xl px-4 py-8 lg:px-6">
+      <div className="relative overflow-hidden border-b border-sky/10 bg-gradient-to-br from-sky/10 via-card to-cyan/10 molecular-bg">
+        <div className="absolute -right-20 -top-32 h-96 w-96 rounded-full bg-cyan/10 blur-3xl" />
+        <div className="absolute -bottom-40 left-1/4 h-80 w-80 rounded-full bg-sky/10 blur-3xl" />
+        <div className="relative mx-auto max-w-7xl px-4 py-10 sm:py-14 lg:px-6">
           <Breadcrumb
             items={[
               { label: "Home", href: "/" },
@@ -139,7 +98,7 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
             <Badge variant="research" className="mb-4">
               {ARTICLE_CATEGORY_LABELS[article.category]}
             </Badge>
-            <h1 className="text-3xl font-semibold tracking-tight text-navy-deep sm:text-4xl lg:text-[2.75rem] lg:leading-tight">
+            <h1 className="bg-gradient-to-r from-navy-deep via-sky to-cyan bg-clip-text text-3xl font-black tracking-tight text-transparent sm:text-5xl lg:leading-tight">
               {article.title}
             </h1>
             {article.excerpt ? (
@@ -176,7 +135,7 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
             </div>
           </aside>
 
-          <article className="min-w-0">
+          <article className="min-w-0 rounded-3xl border border-sky/10 bg-card p-6 shadow-xl shadow-sky/5 sm:p-8 lg:p-10">
             <div className="lg:hidden mb-8">
               <TableOfContents items={toc} />
             </div>

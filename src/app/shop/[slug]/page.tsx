@@ -2,7 +2,14 @@ import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
-import { ArrowLeft, ShieldCheck, Sparkles } from "lucide-react";
+import {
+  ArrowLeft,
+  FileCheck2,
+  MapPin,
+  ShieldCheck,
+  Sparkles,
+  Truck,
+} from "lucide-react";
 import {
   getProductBySlug,
   getProductFaqs,
@@ -111,11 +118,11 @@ export default async function ProductPage({ params }: ProductPageProps) {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
 
-      <div className="border-b border-border bg-gradient-to-b from-secondary/50 to-background">
+      <div className="border-b border-sky/10 bg-gradient-to-b from-sky/5 via-cyan/5 to-background">
         <div className="mx-auto max-w-7xl px-4 py-4 sm:px-6 lg:px-8">
           <Link
             href="/shop"
-            className="inline-flex items-center gap-1.5 text-sm text-muted-foreground transition-colors hover:text-navy"
+            className="inline-flex items-center gap-1.5 text-sm font-medium text-muted-foreground transition-colors hover:text-sky"
           >
             <ArrowLeft className="h-4 w-4" />
             Back to Shop
@@ -127,19 +134,20 @@ export default async function ProductPage({ params }: ProductPageProps) {
         <div className="grid gap-10 lg:grid-cols-2 lg:gap-16">
           {/* Gallery */}
           <div className="space-y-4">
-            <div className="relative aspect-square overflow-hidden rounded-2xl border border-border bg-muted/30 shadow-sm">
+            <div className="relative aspect-square overflow-hidden rounded-3xl border border-sky/15 bg-gradient-to-br from-sky/5 via-white to-cyan/5 shadow-xl shadow-sky/10">
+              <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,rgba(14,165,233,0.08),transparent_50%)]" />
               {product.imageUrl ? (
                 <Image
                   src={product.imageUrl}
                   alt={product.name}
                   fill
                   sizes="(max-width: 1024px) 100vw, 50vw"
-                  className="object-contain p-10"
+                  className="object-contain p-10 transition-transform duration-500 hover:scale-105"
                   priority
                 />
               ) : (
                 <div className="flex h-full items-center justify-center">
-                  <div className="h-40 w-40 rounded-full border border-dashed border-muted-foreground/20" />
+                  <div className="h-40 w-40 rounded-full border border-dashed border-sky/20" />
                 </div>
               )}
             </div>
@@ -170,7 +178,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
                 {product.researchCategory}
               </p>
             )}
-            <h1 className="mt-1 text-3xl font-semibold tracking-tight text-navy-deep sm:text-4xl">
+            <h1 className="mt-1 bg-gradient-to-r from-navy-deep via-sky to-cyan bg-clip-text text-3xl font-bold tracking-tight text-transparent sm:text-4xl">
               {product.name}
             </h1>
 
@@ -195,8 +203,41 @@ export default async function ProductPage({ params }: ProductPageProps) {
               />
             </div>
 
-            <div className="mt-8 rounded-xl border border-burgundy/20 bg-burgundy/5 p-4">
-              <p className="text-xs font-semibold uppercase tracking-wider text-burgundy">
+            <div className="mt-6 grid grid-cols-3 gap-2">
+              {[
+                {
+                  icon: MapPin,
+                  title: "Canada",
+                  detail: "Domestic fulfillment",
+                },
+                {
+                  icon: Truck,
+                  title: "Tracked",
+                  detail: "Order updates",
+                },
+                {
+                  icon: FileCheck2,
+                  title: hasCoa ? "COA listed" : "Clear status",
+                  detail: hasCoa ? "Batch documentation" : "No hidden claims",
+                },
+              ].map(({ icon: Icon, title, detail }) => (
+                <div
+                  key={title}
+                  className="rounded-xl border border-sky/10 bg-gradient-to-br from-sky/5 to-cyan/5 p-3 text-center"
+                >
+                  <Icon className="mx-auto h-4 w-4 text-sky" />
+                  <p className="mt-1.5 text-xs font-bold text-navy-deep">
+                    {title}
+                  </p>
+                  <p className="mt-0.5 text-[10px] leading-tight text-muted-foreground">
+                    {detail}
+                  </p>
+                </div>
+              ))}
+            </div>
+
+            <div className="mt-8 rounded-2xl border border-amber-200/60 bg-gradient-to-br from-amber-50 to-orange-50 p-5">
+              <p className="text-xs font-bold uppercase tracking-wider text-amber-700">
                 Research Use Only
               </p>
               <p className="mt-2 text-sm leading-relaxed text-muted-foreground">

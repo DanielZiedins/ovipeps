@@ -30,7 +30,7 @@ export function CoaCard({ document }: CoaCardProps) {
     : "Pending";
 
   return (
-    <Card className="group overflow-hidden transition-all hover:border-accent/30 hover:shadow-lg hover:shadow-navy/5">
+    <Card className="group overflow-hidden border-sky/10 transition-all duration-300 hover:-translate-y-1 hover:border-sky/30 hover:shadow-xl hover:shadow-sky/10">
       <CardHeader className="space-y-3">
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0">

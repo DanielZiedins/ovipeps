@@ -3,8 +3,10 @@ import { CtaBanner, MarqueeBanner } from "@/components/home/cta-banner";
 import { FeaturedProducts } from "@/components/home/featured-products";
 import { Hero } from "@/components/home/hero";
 import { Newsletter } from "@/components/home/newsletter";
+import { OrderJourney } from "@/components/home/order-journey";
 import { ResearchResources } from "@/components/home/research-resources";
 import { StatsBar } from "@/components/home/stats-bar";
+import { Testimonials } from "@/components/home/testimonials";
 import { TrustStrip } from "@/components/home/trust-strip";
 import {
   getFeaturedProducts,
@@ -15,7 +17,7 @@ import {
 export const metadata: Metadata = {
   title: "Research-Grade Peptides",
   description:
-    "Premium research-grade peptides and laboratory supplies. Third-party tested, COA-documented, and fulfilled from within Canada.",
+    "Premium research peptides and laboratory supplies with published batch documentation where available, fulfilled from within Canada.",
 };
 
 const TRUST_ICON_NAMES = ["MapPin", "FileCheck2", "Shield", "FlaskConical", "Headphones"];
@@ -39,13 +41,11 @@ async function getTrustItems() {
 }
 
 export default async function HomePage() {
-  const [trustItems, featuredProducts, mostRequested, recentlyAdded, essentials] =
+  const [trustItems, featuredProducts, mostRequested] =
     await Promise.all([
       getTrustItems(),
       getFeaturedProducts(8),
       getProducts({ sort: "featured" }).then((p) => p.slice(0, 4)),
-      getProducts({ filter: "new", sort: "newest" }).then((p) => p.slice(0, 4)),
-      getProducts({ category: "supplies" }).then((p) => p.slice(0, 4)),
     ]);
 
   return (
@@ -66,24 +66,9 @@ export default async function HomePage() {
           variant="gradient"
         />
       ) : null}
+      <OrderJourney />
       <CtaBanner />
-      {recentlyAdded.length > 0 ? (
-        <FeaturedProducts
-          title="Recently Added"
-          subtitle="The latest additions to our research catalog."
-          products={recentlyAdded}
-          viewAllHref="/shop?filter=new"
-        />
-      ) : null}
-      {essentials.length > 0 ? (
-        <FeaturedProducts
-          title="Research Essentials"
-          subtitle="Laboratory supplies for reconstitution, handling, and peptide research workflows."
-          products={essentials}
-          viewAllHref="/shop?category=supplies"
-          variant="gradient"
-        />
-      ) : null}
+      <Testimonials />
       <ResearchResources />
       <Newsletter />
     </>

@@ -74,7 +74,7 @@ export function QuickViewModal({
       <button
         type="button"
         aria-label="Close quick view"
-        className="absolute inset-0 bg-navy-deep/60 backdrop-blur-sm"
+        className="absolute inset-0 bg-navy-deep/70 backdrop-blur-md"
         onClick={onClose}
       />
 
@@ -82,7 +82,7 @@ export function QuickViewModal({
         role="dialog"
         aria-modal="true"
         aria-labelledby="quick-view-title"
-        className="relative z-10 w-full max-w-3xl overflow-hidden rounded-2xl border border-border bg-card shadow-2xl"
+        className="relative z-10 w-full max-w-3xl overflow-hidden rounded-3xl border border-sky/20 bg-white shadow-2xl shadow-sky/20"
       >
         <button
           type="button"
@@ -95,7 +95,7 @@ export function QuickViewModal({
 
         <div className="grid md:grid-cols-2">
           {/* Image panel */}
-          <div className="relative aspect-square bg-muted/30 md:aspect-auto md:min-h-[420px]">
+          <div className="relative aspect-square bg-gradient-to-br from-sky/5 via-white to-cyan/5 md:aspect-auto md:min-h-[420px]">
             {product.imageUrl ? (
               <Image
                 src={product.imageUrl}
@@ -111,7 +111,7 @@ export function QuickViewModal({
               </div>
             )}
             {showCoa && (
-              <span className="absolute left-4 top-4 inline-flex items-center gap-1 rounded-full bg-teal px-3 py-1.5 text-xs font-semibold uppercase tracking-wider text-white">
+              <span className="absolute left-4 top-4 inline-flex items-center gap-1 rounded-full bg-gradient-to-r from-sky to-cyan px-3 py-1.5 text-xs font-bold uppercase tracking-wider text-white shadow-lg shadow-sky/30">
                 <ShieldCheck className="h-3.5 w-3.5" />
                 COA Available
               </span>
@@ -127,7 +127,7 @@ export function QuickViewModal({
             )}
             <h2
               id="quick-view-title"
-              className="mt-1 text-2xl font-semibold text-navy-deep"
+              className="mt-1 text-2xl font-bold text-navy-deep"
             >
               {product.name}
             </h2>
@@ -198,9 +198,9 @@ export function QuickViewModal({
                 onClick={handleAddToCart}
                 disabled={!inStock || !selectedVariant}
                 className={cn(
-                  "flex w-full items-center justify-center gap-2 rounded-lg py-3 text-sm font-semibold transition-colors",
+                  "flex w-full items-center justify-center gap-2 rounded-xl py-3.5 text-sm font-bold transition-all",
                   inStock
-                    ? "bg-navy text-primary-foreground hover:bg-navy-deep"
+                    ? "bg-gradient-to-r from-sky to-cyan text-white shadow-lg shadow-sky/25 hover:shadow-xl hover:shadow-sky/35"
                     : "cursor-not-allowed bg-muted text-muted-foreground"
                 )}
               >

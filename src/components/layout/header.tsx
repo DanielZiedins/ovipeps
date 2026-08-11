@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import Image from "next/image";
 import Link from "next/link";
 import {
   BookOpen,
@@ -25,6 +24,7 @@ import { cn } from "@/lib/utils";
 import { MegaMenu } from "./mega-menu";
 import { CartDrawer } from "./cart-drawer";
 import { SearchModal } from "./search-modal";
+import { BrandMark } from "./brand-mark";
 
 const shopSections = [
   {
@@ -206,14 +206,7 @@ export function Header() {
             </button>
 
             <Link href="/" className="relative flex shrink-0 items-center">
-              <Image
-                src="/images/brand/logo.png"
-                alt="OVIPeps"
-                width={140}
-                height={36}
-                className="h-8 w-auto object-contain lg:h-9"
-                priority
-              />
+              <BrandMark size="sm" />
             </Link>
           </div>
 
@@ -224,7 +217,7 @@ export function Header() {
               featured={{
                 title: "Research-Grade Quality",
                 description:
-                  "Third-party tested peptides with full COA documentation for qualified laboratories.",
+                  "Research products with published batch documentation clearly identified where available.",
                 href: "/shop?filter=featured",
                 cta: "Shop Featured",
               }}
@@ -316,13 +309,7 @@ export function Header() {
           )}
         >
           <div className="flex items-center justify-between border-b border-border px-4 py-4">
-            <Image
-              src="/images/brand/logo.png"
-              alt="OVIPeps"
-              width={120}
-              height={32}
-              className="h-7 w-auto object-contain"
-            />
+            <BrandMark size="sm" />
             <button
               type="button"
               onClick={() => setMobileOpen(false)}

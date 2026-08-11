@@ -87,7 +87,7 @@ export const FALLBACK_SETTINGS: Record<string, string> = {
   trust_2_title: "Batch Documentation",
   trust_2_desc: "COA library for qualified research orders",
   trust_3_title: "Secure Order Process",
-  trust_3_desc: "Protected checkout and order tracking",
+  trust_3_desc: "Clear e-Transfer steps and order references",
   trust_4_title: "Research Use Only",
   trust_4_desc: "Clear product communication for laboratory use",
   trust_5_title: "Fast Support",
