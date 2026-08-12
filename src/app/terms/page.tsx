@@ -74,9 +74,30 @@ export default function TermsPage() {
                     medical treatment, veterinary use, or diagnostic purposes.
                   </p>
                   <p>
-                    See our{" "}
-                    <Link href="/research-disclaimer">Research Disclaimer</Link> for
-                    additional information.
+                    By placing an order, you confirm that you understand and accept
+                    these restrictions, that you will use products only for lawful
+                    laboratory research, and that you will not use or promote products
+                    for human or veterinary consumption.
+                  </p>
+                  <p>
+                    You are solely responsible for ensuring that your purchase and use
+                    of products complies with all applicable laws, regulations, and
+                    institutional policies in your jurisdiction.
+                  </p>
+                </>
+              ),
+            },
+            {
+              id: "buyer-acknowledgment",
+              title: "Buyer acknowledgment at checkout",
+              content: (
+                <>
+                  <p>
+                    Completing checkout requires agreement to these Terms of Service and
+                    our Privacy Policy. That acknowledgment constitutes your acceptance
+                    of all terms on this page, including research-use restrictions,
+                    limitations of liability, shipping and returns policies, and payment
+                    conditions.
                   </p>
                 </>
               ),
@@ -89,8 +110,8 @@ export default function TermsPage() {
                   <p>
                     All prices are listed in Canadian dollars (CAD) unless otherwise
                     stated. We reserve the right to refuse or cancel orders at our
-                    discretion, including orders with incorrect pricing or suspected
-                    fraudulent activity.
+                    discretion, including orders with incorrect pricing, products marked
+                    out of stock, or suspected fraudulent activity.
                   </p>
                   <p>
                     Payment is accepted via Interac e-Transfer as described in our{" "}

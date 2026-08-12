@@ -44,7 +44,7 @@ export function FeaturedProducts({
           <div>
             <div className="mb-2 inline-flex items-center gap-1.5 rounded-full bg-sky/10 px-3 py-1 text-xs font-bold uppercase tracking-widest text-sky">
               <Sparkles className="h-3 w-3" />
-              Research Catalog
+              Catalog Preview
             </div>
             <h2 className="text-3xl font-bold tracking-tight text-navy-deep sm:text-4xl">
               {title}
@@ -54,13 +54,16 @@ export function FeaturedProducts({
                 {subtitle}
               </p>
             )}
+            <p className="mt-2 text-sm font-medium text-amber-800">
+              Temporarily unavailable — browsing only while we restock.
+            </p>
           </div>
           {viewAllHref && (
             <Link
               href={viewAllHref}
               className="group inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-sky to-cyan px-5 py-2.5 text-sm font-bold text-white shadow-md shadow-sky/25 transition-all hover:scale-105 hover:shadow-lg hover:shadow-sky/30"
             >
-              View All
+              Browse catalog
               <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
             </Link>
           )}

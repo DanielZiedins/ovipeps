@@ -135,25 +135,24 @@ export default function AboutPage() {
 
         <section className="mt-20 rounded-2xl border border-border bg-muted/30 p-8 text-center lg:p-12">
           <h2 className="text-2xl font-semibold text-navy-deep">
-            Explore our resources
+            Ready to work with us?
           </h2>
           <p className="mx-auto mt-3 max-w-xl text-muted-foreground">
-            Whether you are new to peptide research or managing institutional
-            procurement, our Research Hub, COA library, and support team are here to
-            help.
+            Browse the catalog, review shipping and payment details, or contact our
+            team with procurement questions.
           </p>
           <div className="mt-8 flex flex-wrap items-center justify-center gap-4">
             <Link
-              href="/research"
+              href="/shop"
               className="inline-flex h-11 items-center rounded-lg bg-primary px-6 text-sm font-medium text-primary-foreground transition-colors hover:bg-navy-deep"
             >
-              Research Hub
+              Browse Catalog
             </Link>
             <Link
-              href="/lab-results"
+              href="/shipping"
               className="inline-flex h-11 items-center rounded-lg border border-border bg-card px-6 text-sm font-medium text-foreground transition-colors hover:bg-muted"
             >
-              Lab Results
+              Shipping
             </Link>
             <Link
               href="/contact"

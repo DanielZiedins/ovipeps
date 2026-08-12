@@ -142,7 +142,7 @@ export function ProductCard({
             >
               <ShoppingBag className="h-3.5 w-3.5" />
               {!inStock
-                ? "Out of Stock"
+                ? "Unavailable"
                 : hasMultipleVariants
                   ? "Choose Options"
                   : "Add to Cart"}
@@ -173,7 +173,7 @@ export function ProductCard({
               )}
             >
               <span className={cn("h-1.5 w-1.5 rounded-full", inStock ? "bg-success animate-pulse" : "bg-muted-foreground")} />
-              {inStock ? "In Stock" : "Sold Out"}
+              {inStock ? "In Stock" : "Unavailable"}
             </span>
           </div>
         </div>

@@ -1,5 +1,6 @@
 import { db } from "@/lib/db";
 import { FALLBACK_PRODUCTS, FALLBACK_SETTINGS } from "@/lib/fallback-data";
+import { FORCE_CATALOG_OUT_OF_STOCK } from "@/lib/catalog-status";
 import type { Prisma, ProductCategory } from "@/generated/prisma/client";
 import {
   getLowestPrice,
@@ -8,6 +9,12 @@ import {
   type ProductVariant,
   type SortOption,
 } from "@/types/product";
+
+export { FORCE_CATALOG_OUT_OF_STOCK } from "@/lib/catalog-status";
+
+function applyStockPolicy(inStock: boolean): boolean {
+  return FORCE_CATALOG_OUT_OF_STOCK ? false : inStock;
+}
 
 const productCardInclude = {
   variants: { orderBy: { sortOrder: "asc" as const } },
@@ -55,7 +62,7 @@ function mapVariant(variant: ProductWithVariants["variants"][number]): ProductVa
     name: variant.name,
     sku: variant.sku,
     price: variant.price,
-    inStock: variant.inStock,
+    inStock: applyStockPolicy(variant.inStock),
     isDefault: variant.isDefault,
   };
 }
@@ -214,7 +221,16 @@ export async function getProductBySlug(slug: string): Promise<ProductDetail | nu
       where: { slug, published: true },
       include: productDetailInclude,
     });
-    if (product) return product;
+    if (product) {
+      return {
+        ...product,
+        variants: product.variants.map((v) => ({
+          ...v,
+          inStock: applyStockPolicy(v.inStock),
+          stockQuantity: applyStockPolicy(v.inStock) ? v.stockQuantity : 0,
+        })),
+      };
+    }
   } catch {
     // fall through to static catalog
   }
@@ -248,8 +264,8 @@ export async function getProductBySlug(slug: string): Promise<ProductDetail | nu
       compareAtPrice: null,
       concentration: null,
       size: v.name,
-      stockQuantity: v.inStock ? 100 : 0,
-      inStock: v.inStock,
+      stockQuantity: applyStockPolicy(v.inStock) ? 100 : 0,
+      inStock: applyStockPolicy(v.inStock),
       isDefault: v.isDefault ?? i === 0,
       sortOrder: i,
       createdAt: new Date(),

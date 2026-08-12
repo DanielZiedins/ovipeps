@@ -3,7 +3,7 @@ import Link from "next/link";
 import { PageHero } from "@/components/content/page-hero";
 import { Breadcrumb } from "@/components/content/breadcrumb";
 import { LegalSectionList } from "@/components/content/legal-section";
-import { db } from "@/lib/db";
+import { getSiteSetting } from "@/lib/products";
 
 export const metadata: Metadata = {
   title: "Payment Instructions",
@@ -12,16 +12,14 @@ export const metadata: Metadata = {
 };
 
 export default async function PaymentInstructionsPage() {
-  const settings = await db.siteSetting.findMany({
-    where: {
-      key: { in: ["etransfer_email", "etransfer_instructions"] },
-    },
-  });
-
+  const [configuredEmail, configuredInstructions] = await Promise.all([
+    getSiteSetting("etransfer_email"),
+    getSiteSetting("etransfer_instructions"),
+  ]);
   const etransferEmail =
-    settings.find((s) => s.key === "etransfer_email")?.value ?? "orders@ovipeps.ca";
+    configuredEmail ?? "orders@ovipeps.ca";
   const instructions =
-    settings.find((s) => s.key === "etransfer_instructions")?.value ??
+    configuredInstructions ??
     `Please send your Interac e-Transfer to ${etransferEmail}. Include your order number in the message field.`;
 
   return (
@@ -79,7 +77,7 @@ export default async function PaymentInstructionsPage() {
                       Send the exact order total shown at checkout (CAD)
                     </li>
                     <li>
-                      You will receive a confirmation email once payment is verified
+                      Your order status is updated after payment is verified
                     </li>
                   </ol>
                 </>
@@ -96,8 +94,9 @@ export default async function PaymentInstructionsPage() {
                     on the next business day.
                   </p>
                   <p>
-                    Your order will not ship until payment is confirmed. You can track
-                    order status from your account dashboard.
+                    Your order will not ship until payment is confirmed. Registered
+                    customers can review linked orders from their account dashboard;
+                    guest customers should retain their protected confirmation link.
                   </p>
                 </>
               ),

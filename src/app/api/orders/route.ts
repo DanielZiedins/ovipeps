@@ -2,11 +2,14 @@ import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { createOrder } from "@/lib/orders";
 import type { CreateOrderInput } from "@/lib/orders";
+import { FORCE_CATALOG_OUT_OF_STOCK } from "@/lib/catalog-status";
 import { createOrderAccessToken } from "@/lib/order-access";
 
 export async function POST(request: Request) {
   try {
     const body = (await request.json()) as CreateOrderInput & {
+      termsAccepted?: boolean;
+      /** @deprecated Prefer termsAccepted */
       researchUseAccepted?: boolean;
     };
     const session = await auth();
@@ -42,9 +45,19 @@ export async function POST(request: Request) {
       );
     }
 
-    if (!body.researchUseAccepted) {
+    if (!body.termsAccepted && !body.researchUseAccepted) {
       return NextResponse.json(
-        { error: "Research-use confirmation is required" },
+        { error: "Please agree to the Terms of Service to continue" },
+        { status: 400 }
+      );
+    }
+
+    if (FORCE_CATALOG_OUT_OF_STOCK) {
+      return NextResponse.json(
+        {
+          error:
+            "Our catalog is currently restocking. Orders cannot be placed until inventory is available again.",
+        },
         { status: 400 }
       );
     }

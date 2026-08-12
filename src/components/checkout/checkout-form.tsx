@@ -20,6 +20,7 @@ import {
   Truck,
 } from "lucide-react";
 import { useCartStore } from "@/store/cart";
+import { FORCE_CATALOG_OUT_OF_STOCK, RESTOCK_MESSAGE } from "@/lib/catalog-status";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select } from "@/components/ui/select";
@@ -65,8 +66,8 @@ const checkoutSchema = z.object({
     ),
   phone: z.string().optional(),
   affiliateCode: z.string().optional(),
-  researchUseAccepted: z.boolean().refine((value) => value, {
-    message: "Confirm that the order is for research use only",
+  termsAccepted: z.boolean().refine((value) => value, {
+    message: "Please agree to the Terms of Service to continue",
   }),
 });
 
@@ -93,7 +94,7 @@ export function CheckoutForm() {
     resolver: zodResolver(checkoutSchema),
     defaultValues: {
       affiliateCode: affiliateCode ?? "",
-      researchUseAccepted: false,
+      termsAccepted: false,
     },
   });
 
@@ -148,7 +149,7 @@ export function CheckoutForm() {
           })),
           discountCode,
           affiliateCode: values.affiliateCode || affiliateCode,
-          researchUseAccepted: values.researchUseAccepted,
+          termsAccepted: values.termsAccepted,
         }),
       });
 
@@ -197,17 +198,64 @@ export function CheckoutForm() {
           <h2 className="mt-4 text-lg font-semibold text-foreground">
             Your cart is empty
           </h2>
-          <p className="mt-2 text-sm text-muted-foreground">
-            Add items to your cart before checking out.
+          <p className="mt-2 max-w-sm text-sm text-muted-foreground">
+            {FORCE_CATALOG_OUT_OF_STOCK
+              ? "Browse the catalog while we restock, or contact us for availability updates."
+              : "Add items to your cart before checking out."}
           </p>
-          <Button
-            variant="primary"
-            size="lg"
-            className="mt-6"
-            onClick={() => router.push("/shop")}
-          >
-            Continue Shopping
-          </Button>
+          <div className="mt-6 flex flex-wrap items-center justify-center gap-3">
+            <Button
+              variant="primary"
+              size="lg"
+              onClick={() => router.push("/shop")}
+            >
+              Browse Catalog
+            </Button>
+            {FORCE_CATALOG_OUT_OF_STOCK && (
+              <Button
+                variant="outline"
+                size="lg"
+                onClick={() => router.push("/contact")}
+              >
+                Contact Support
+              </Button>
+            )}
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  if (FORCE_CATALOG_OUT_OF_STOCK) {
+    return (
+      <Card className="border-amber-200/80 bg-gradient-to-br from-amber-50 to-white">
+        <CardContent className="flex flex-col items-center py-16 text-center">
+          <PackageCheck className="h-12 w-12 text-amber-700/70" />
+          <h2 className="mt-4 text-lg font-semibold text-foreground">
+            Checkout is temporarily paused
+          </h2>
+          <p className="mt-2 max-w-md text-sm leading-relaxed text-muted-foreground">
+            {RESTOCK_MESSAGE}
+          </p>
+          <div className="mt-6 flex flex-wrap items-center justify-center gap-3">
+            <Button
+              variant="primary"
+              size="lg"
+              onClick={() => router.push("/shop")}
+            >
+              Browse Catalog
+            </Button>
+            <Button
+              variant="outline"
+              size="lg"
+              onClick={() => {
+                clearCart();
+                router.push("/contact");
+              }}
+            >
+              Clear cart & contact us
+            </Button>
+          </div>
         </CardContent>
       </Card>
     );
@@ -415,31 +463,37 @@ export function CheckoutForm() {
           </CardContent>
         </Card>
 
-        <Card className="border-amber-200/70 bg-gradient-to-br from-amber-50 to-orange-50/70 shadow-sm">
+        <Card className="border-sky/20 bg-gradient-to-br from-sky/5 to-cyan/5 shadow-sm">
           <CardContent className="pt-6">
             <label className="flex cursor-pointer items-start gap-3">
               <input
                 type="checkbox"
-                className="mt-0.5 h-4 w-4 rounded border-amber-300 text-sky focus:ring-sky"
-                {...register("researchUseAccepted")}
+                className="mt-0.5 h-4 w-4 rounded border-sky/40 text-sky focus:ring-sky"
+                {...register("termsAccepted")}
               />
               <span className="text-sm leading-relaxed text-foreground">
-                I confirm that these products are being purchased for laboratory
-                research use only, not for human or veterinary consumption, and
                 I agree to the{" "}
                 <Link
-                  href="/research-disclaimer"
+                  href="/terms"
                   target="_blank"
                   className="font-semibold text-sky underline-offset-2 hover:underline"
                 >
-                  research disclaimer
+                  Terms of Service
+                </Link>{" "}
+                and{" "}
+                <Link
+                  href="/privacy"
+                  target="_blank"
+                  className="font-semibold text-sky underline-offset-2 hover:underline"
+                >
+                  Privacy Policy
                 </Link>
                 .
               </span>
             </label>
-            {errors.researchUseAccepted?.message && (
+            {errors.termsAccepted?.message && (
               <p role="alert" className="mt-2 text-sm text-error">
-                {errors.researchUseAccepted.message}
+                {errors.termsAccepted.message}
               </p>
             )}
           </CardContent>

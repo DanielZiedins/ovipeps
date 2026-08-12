@@ -1,9 +1,7 @@
 import Link from "next/link";
 import {
-  Calculator,
   FileCheck,
   FlaskConical,
-  HelpCircle,
   Mail,
   MapPin,
   Microscope,
@@ -21,14 +19,13 @@ const shopLinks = [
   { label: "Bundles", href: "/shop?category=bundles" },
 ];
 
-const researchLinks = [
-  { label: "Research Hub", href: "/research" },
-  { label: "Peptides 101", href: "/research/peptides-101-introduction" },
-  { label: "Understanding COAs", href: "/research/understanding-coas" },
-  { label: "Storage & Handling", href: "/research/storage-handling" },
-  { label: "Lab Results", href: "/lab-results" },
-  { label: "Calculator", href: "/calculator" },
-  { label: "FAQ", href: "/research/faq" },
+const companyLinks = [
+  { label: "About", href: "/about" },
+  { label: "Contact Us", href: "/contact" },
+  { label: "Shipping", href: "/shipping" },
+  { label: "Payment Instructions", href: "/payment-instructions" },
+  { label: "Affiliate Program", href: "/affiliates" },
+  { label: "Account", href: "/account" },
 ];
 
 const legalLinks = [
@@ -36,13 +33,12 @@ const legalLinks = [
   { label: "Terms of Service", href: "/terms" },
   { label: "Shipping Policy", href: "/shipping" },
   { label: "Returns & Refunds", href: "/returns" },
-  { label: "Research Disclaimer", href: "/research-disclaimer" },
 ];
 
 const supportLinks = [
   { label: "Contact Us", href: "/contact" },
   { label: "Account", href: "/account" },
-  { label: "Affiliate Program", href: "/affiliates" },
+  { label: "Terms", href: "/terms" },
 ];
 
 function FooterLinkGroup({
@@ -113,7 +109,7 @@ export function Footer() {
           </div>
 
           <FooterLinkGroup title="Shop" links={shopLinks} />
-          <FooterLinkGroup title="Research Hub" links={researchLinks} />
+          <FooterLinkGroup title="Company" links={companyLinks} />
           <FooterLinkGroup title="Legal" links={legalLinks} />
         </div>
       </div>
@@ -183,8 +179,7 @@ export function Footer() {
             <Microscope className="h-4 w-4" />
             <Package className="h-4 w-4" />
             <FileCheck className="h-4 w-4" />
-            <Calculator className="h-4 w-4" />
-            <HelpCircle className="h-4 w-4" />
+            <Shield className="h-4 w-4" />
           </div>
         </div>
 

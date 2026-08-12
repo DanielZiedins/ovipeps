@@ -3,12 +3,8 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import {
-  BookOpen,
-  Calculator,
   ChevronDown,
-  FileCheck,
   FlaskConical,
-  HelpCircle,
   Menu,
   Microscope,
   Package,
@@ -75,77 +71,19 @@ const shopSections = [
   },
 ];
 
-const researchSections = [
-  {
-    title: "Learn",
-    links: [
-      {
-        label: "Research Hub",
-        href: "/research",
-        description: "Guides, articles, and resources",
-        icon: BookOpen,
-      },
-      {
-        label: "Peptides 101",
-        href: "/research/peptides-101-introduction",
-        description: "Introduction to peptide research",
-        icon: FlaskConical,
-      },
-      {
-        label: "Understanding COAs",
-        href: "/research/understanding-coas",
-        description: "How to read certificates of analysis",
-        icon: FileCheck,
-      },
-      {
-        label: "Storage & Handling",
-        href: "/research/storage-handling",
-        description: "Best practices for lab storage",
-        icon: Microscope,
-      },
-    ],
-  },
-  {
-    title: "Tools",
-    links: [
-      {
-        label: "Lab Results",
-        href: "/lab-results",
-        description: "Batch testing documentation",
-        icon: FileCheck,
-      },
-      {
-        label: "Reconstitution Calculator",
-        href: "/calculator",
-        description: "Calculate dilution volumes",
-        icon: Calculator,
-      },
-      {
-        label: "FAQ",
-        href: "/research/faq",
-        description: "Common research questions",
-        icon: HelpCircle,
-      },
-    ],
-  },
-];
-
 const mobileNavLinks = [
-  { label: "Shop", href: "/shop" },
-  { label: "Research Hub", href: "/research" },
-  { label: "Lab Results", href: "/lab-results" },
-  { label: "Calculator", href: "/calculator" },
+  { label: "About", href: "/about" },
+  { label: "Shipping", href: "/shipping" },
+  { label: "Contact", href: "/contact" },
   { label: "Account", href: "/account" },
 ];
 
 export function Header() {
   const [shopOpen, setShopOpen] = useState(false);
-  const [researchOpen, setResearchOpen] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const [mobileShopOpen, setMobileShopOpen] = useState(false);
-  const [mobileResearchOpen, setMobileResearchOpen] = useState(false);
 
   const itemCount = useCartStore((s) => s.itemCount());
   const openCart = useCartStore((s) => s.openCart);
@@ -179,11 +117,6 @@ export function Header() {
     return () => document.removeEventListener("keydown", handleShortcut);
   }, []);
 
-  const closeMenus = () => {
-    setShopOpen(false);
-    setResearchOpen(false);
-  };
-
   return (
     <>
       <header
@@ -210,7 +143,10 @@ export function Header() {
             </Link>
           </div>
 
-          <nav className="hidden items-center gap-1 lg:flex" onMouseLeave={closeMenus}>
+          <nav
+            className="hidden items-center gap-1 lg:flex"
+            onMouseLeave={() => setShopOpen(false)}
+          >
             <MegaMenu
               label="Shop"
               sections={shopSections}
@@ -222,34 +158,26 @@ export function Header() {
                 cta: "Shop Featured",
               }}
               isOpen={shopOpen}
-              onOpen={() => {
-                setResearchOpen(false);
-                setShopOpen(true);
-              }}
+              onOpen={() => setShopOpen(true)}
               onClose={() => setShopOpen(false)}
             />
-            <MegaMenu
-              label="Research Hub"
-              sections={researchSections}
-              featured={{
-                title: "Peptides 101",
-                description:
-                  "New to peptide research? Start with our comprehensive introduction guide.",
-                href: "/research/peptides-101-introduction",
-                cta: "Start Learning",
-              }}
-              isOpen={researchOpen}
-              onOpen={() => {
-                setShopOpen(false);
-                setResearchOpen(true);
-              }}
-              onClose={() => setResearchOpen(false)}
-            />
             <Link
-              href="/lab-results"
+              href="/about"
               className="rounded-md px-3 py-2 text-sm font-medium text-foreground/80 transition-colors hover:bg-secondary hover:text-navy"
             >
-              Lab Results
+              About
+            </Link>
+            <Link
+              href="/shipping"
+              className="rounded-md px-3 py-2 text-sm font-medium text-foreground/80 transition-colors hover:bg-secondary hover:text-navy"
+            >
+              Shipping
+            </Link>
+            <Link
+              href="/contact"
+              className="rounded-md px-3 py-2 text-sm font-medium text-foreground/80 transition-colors hover:bg-secondary hover:text-navy"
+            >
+              Contact
             </Link>
           </nav>
 
@@ -350,35 +278,7 @@ export function Header() {
                 </div>
               )}
 
-              <button
-                type="button"
-                onClick={() => setMobileResearchOpen(!mobileResearchOpen)}
-                className="flex w-full items-center justify-between rounded-lg px-3 py-2.5 text-sm font-medium text-foreground hover:bg-secondary"
-              >
-                Research Hub
-                <ChevronDown
-                  className={cn(
-                    "h-4 w-4 transition-transform",
-                    mobileResearchOpen && "rotate-180"
-                  )}
-                />
-              </button>
-              {mobileResearchOpen && (
-                <div className="ml-3 space-y-1 border-l border-border pl-3">
-                  {researchSections.flatMap((s) => s.links).map((link) => (
-                    <Link
-                      key={link.href}
-                      href={link.href}
-                      onClick={() => setMobileOpen(false)}
-                      className="block rounded-md px-3 py-2 text-sm text-muted-foreground hover:bg-secondary hover:text-foreground"
-                    >
-                      {link.label}
-                    </Link>
-                  ))}
-                </div>
-              )}
-
-              {mobileNavLinks.slice(2).map((link) => (
+              {mobileNavLinks.map((link) => (
                 <Link
                   key={link.href}
                   href={link.href}

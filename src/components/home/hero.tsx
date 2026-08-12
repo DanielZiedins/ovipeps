@@ -167,10 +167,10 @@ export function Hero() {
                 <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
               </Link>
               <Link
-                href="/lab-results"
+                href="/about"
                 className="inline-flex items-center justify-center gap-2 rounded-xl border-2 border-white/25 bg-white/10 px-8 py-4 text-sm font-bold text-white backdrop-blur-md transition-all hover:border-cyan-bright/50 hover:bg-white/20 hover:scale-105"
               >
-                View Lab Results
+                About OVIPeps
               </Link>
             </motion.div>
 
@@ -181,7 +181,7 @@ export function Hero() {
               transition={{ delay: 0.6 }}
               className="mt-10 flex flex-wrap items-center justify-center gap-3 lg:justify-start"
             >
-              {["Canadian Fulfillment", "COA Library", "Interac e-Transfer"].map((pill) => (
+              {["Canadian Fulfillment", "Research Use Only", "Interac e-Transfer"].map((pill) => (
                 <span
                   key={pill}
                   className="rounded-full border border-white/15 bg-white/5 px-3 py-1 text-[11px] font-medium text-white/70 backdrop-blur-sm"

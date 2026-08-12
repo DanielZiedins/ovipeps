@@ -10,11 +10,19 @@ export const metadata: Metadata = {
   openGraph: {
     title: "COA Library | OVIPeps",
     description:
-      "Full transparency on batch testing — certificates of analysis for every published lot.",
+      "Browse available certificates of analysis for published product batches.",
   },
 };
 
-export default async function LabResultsPage() {
+interface LabResultsPageProps {
+  searchParams: Promise<{ batch?: string; q?: string }>;
+}
+
+export default async function LabResultsPage({
+  searchParams,
+}: LabResultsPageProps) {
+  const params = await searchParams;
+  const initialQuery = params.batch ?? params.q ?? "";
   const documents = await getPublishedCoaDocuments();
 
   return (
@@ -41,7 +49,11 @@ export default async function LabResultsPage() {
         </section>
 
         <section className="mx-auto max-w-7xl px-4 py-12 sm:px-6 sm:py-16 lg:px-8">
-          <CoaSearch documents={documents} mode="library" />
+          <CoaSearch
+            documents={documents}
+            initialQuery={initialQuery}
+            mode="library"
+          />
         </section>
 
         <section className="border-t border-border bg-muted/30">

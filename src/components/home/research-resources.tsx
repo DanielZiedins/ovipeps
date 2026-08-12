@@ -22,7 +22,7 @@ const RESOURCES = [
   },
   {
     title: "COA Library",
-    description: "Browse certificates of analysis for every batch. Full transparency on purity and testing.",
+    description: "Browse published, batch-specific certificates of analysis and available testing details.",
     href: "/lab-results",
     icon: FileCheck2,
     gradient: "from-cyan to-teal-light",

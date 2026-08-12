@@ -3,7 +3,7 @@ import Link from "next/link";
 import { PageHero } from "@/components/content/page-hero";
 import { Breadcrumb } from "@/components/content/breadcrumb";
 import { LegalSectionList } from "@/components/content/legal-section";
-import { db } from "@/lib/db";
+import { getSiteSetting } from "@/lib/products";
 
 export const metadata: Metadata = {
   title: "Research Disclaimer",
@@ -12,12 +12,8 @@ export const metadata: Metadata = {
 };
 
 export default async function ResearchDisclaimerPage() {
-  const setting = await db.siteSetting.findUnique({
-    where: { key: "research_disclaimer" },
-  });
-
   const shortDisclaimer =
-    setting?.value ??
+    (await getSiteSetting("research_disclaimer")) ??
     "All products are sold for research purposes only. Not for human consumption.";
 
   return (

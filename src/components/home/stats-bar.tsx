@@ -17,12 +17,6 @@ interface StatsBarProps {
 
 const PROOFS = [
   {
-    icon: FileCheck2,
-    label: "COA library",
-    description: "Review published batch documentation before ordering.",
-    href: "/lab-results",
-  },
-  {
     icon: MapPin,
     label: "Canadian fulfillment",
     description: "Orders are prepared and shipped from within Canada.",
@@ -31,14 +25,20 @@ const PROOFS = [
   {
     icon: ShieldCheck,
     label: "Clear standards",
-    description: "Research-use terms and product status are shown plainly.",
-    href: "/research-disclaimer",
+    description: "Transparent terms, research-use requirements, and product status.",
+    href: "/terms",
   },
   {
     icon: Truck,
     label: "Tracked delivery",
     description: "Transparent shipping rates, thresholds, and order updates.",
     href: "/shipping",
+  },
+  {
+    icon: FileCheck2,
+    label: "Secure checkout",
+    description: "Interac e-Transfer with clear payment instructions after order.",
+    href: "/payment-instructions",
   },
 ];
 

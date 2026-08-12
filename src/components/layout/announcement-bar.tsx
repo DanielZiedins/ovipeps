@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { motion } from "framer-motion";
-import { ChevronRight, Sparkles, Truck } from "lucide-react";
+import { ChevronRight, Package, Sparkles } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export interface Announcement {
@@ -61,7 +61,7 @@ export function AnnouncementBar({
             visible ? "translate-y-0 opacity-100" : "-translate-y-2 opacity-0"
           )}
         >
-          <Truck className="h-3.5 w-3.5 text-cyan-bright sm:hidden" aria-hidden />
+          <Package className="h-3.5 w-3.5 text-cyan-bright sm:hidden" aria-hidden />
           <span className="font-semibold text-white">{current.message}</span>
           {current.link && (
             <Link

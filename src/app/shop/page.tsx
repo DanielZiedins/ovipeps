@@ -45,6 +45,22 @@ async function ShopContent({ searchParams }: { searchParams: Record<string, stri
 
   return (
     <div className="mx-auto max-w-7xl px-4 pb-16 pt-4 sm:px-6 lg:px-8">
+      <div className="mb-8 rounded-2xl border border-amber-200/80 bg-gradient-to-r from-amber-50 via-orange-50/80 to-white px-5 py-4 shadow-sm">
+        <p className="text-xs font-bold uppercase tracking-wider text-amber-800">
+          Temporarily out of stock
+        </p>
+        <p className="mt-1.5 text-sm leading-relaxed text-amber-950/80">
+          The full catalog is visible for browsing, but every product is currently
+          unavailable while we restock. Contact{" "}
+          <a
+            href="mailto:support@ovipeps.ca"
+            className="font-semibold text-sky underline-offset-2 hover:underline"
+          >
+            support@ovipeps.ca
+          </a>{" "}
+          for availability updates.
+        </p>
+      </div>
       <ShopCatalog
         products={products}
         categories={categories}

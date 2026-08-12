@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Minus, Plus, ShoppingBag } from "lucide-react";
+import Link from "next/link";
+import { Mail, Minus, Plus, ShoppingBag } from "lucide-react";
 import { cn, formatCurrency } from "@/lib/utils";
 import { useCartStore } from "@/store/cart";
 import { Button } from "@/components/ui/button";
@@ -78,18 +79,17 @@ export function ProductDetailClient({
               <button
                 key={variant.id}
                 type="button"
-                disabled={!variant.inStock}
                 onClick={() => setSelectedVariant(variant)}
                 className={cn(
                   "rounded-lg border px-4 py-2.5 text-sm font-medium transition-all",
                   selectedVariant?.id === variant.id
                     ? "border-navy bg-navy text-primary-foreground shadow-sm"
-                    : variant.inStock
-                      ? "border-border bg-background text-foreground hover:border-accent/40 hover:shadow-sm"
-                      : "cursor-not-allowed border-border bg-muted text-muted-foreground line-through"
+                    : "border-border bg-background text-foreground hover:border-accent/40 hover:shadow-sm",
+                  !variant.inStock && "opacity-70"
                 )}
               >
                 {variant.name}
+                {!variant.inStock ? " · OOS" : ""}
               </button>
             ))}
           </div>
@@ -100,11 +100,16 @@ export function ProductDetailClient({
         <span className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
           Quantity
         </span>
-        <div className="inline-flex items-center rounded-lg border border-border">
+        <div
+          className={cn(
+            "inline-flex items-center rounded-lg border border-border",
+            !inStock && "opacity-50"
+          )}
+        >
           <button
             type="button"
             onClick={decrementQuantity}
-            disabled={quantity <= 1}
+            disabled={!inStock || quantity <= 1}
             className="flex h-10 w-10 items-center justify-center text-muted-foreground transition-colors hover:bg-muted/60 hover:text-foreground disabled:opacity-40"
             aria-label="Decrease quantity"
           >
@@ -116,7 +121,8 @@ export function ProductDetailClient({
           <button
             type="button"
             onClick={incrementQuantity}
-            className="flex h-10 w-10 items-center justify-center text-muted-foreground transition-colors hover:bg-muted/60 hover:text-foreground"
+            disabled={!inStock}
+            className="flex h-10 w-10 items-center justify-center text-muted-foreground transition-colors hover:bg-muted/60 hover:text-foreground disabled:opacity-40"
             aria-label="Increase quantity"
           >
             <Plus className="h-4 w-4" />
@@ -130,16 +136,16 @@ export function ProductDetailClient({
             "inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-medium",
             inStock
               ? "bg-success/10 text-success"
-              : "bg-muted text-muted-foreground"
+              : "bg-amber-100 text-amber-900"
           )}
         >
           <span
             className={cn(
               "h-1.5 w-1.5 rounded-full",
-              inStock ? "bg-success" : "bg-muted-foreground"
+              inStock ? "bg-success" : "bg-amber-600"
             )}
           />
-          {inStock ? "In Stock" : "Out of Stock"}
+          {inStock ? "In Stock" : "Temporarily out of stock — restocking"}
         </span>
       </div>
 
@@ -150,8 +156,32 @@ export function ProductDetailClient({
         disabled={!inStock || !selectedVariant}
       >
         <ShoppingBag className="h-4 w-4" />
-        {inStock ? "Add to Cart" : "Out of Stock"}
+        {inStock ? "Add to Cart" : "Currently Unavailable"}
       </Button>
+
+      {!inStock && (
+        <div className="rounded-xl border border-sky/15 bg-sky/5 p-4">
+          <p className="text-sm text-muted-foreground">
+            Want updates when this compound returns? Reach out and we&apos;ll help with
+            availability questions.
+          </p>
+          <div className="mt-3 flex flex-wrap gap-2">
+            <a
+              href="mailto:support@ovipeps.ca"
+              className="inline-flex items-center gap-2 rounded-lg bg-navy px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-navy-deep"
+            >
+              <Mail className="h-4 w-4" />
+              support@ovipeps.ca
+            </a>
+            <Link
+              href="/contact"
+              className="inline-flex items-center rounded-lg border border-border bg-card px-4 py-2.5 text-sm font-semibold text-foreground transition-colors hover:bg-muted"
+            >
+              Contact form
+            </Link>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

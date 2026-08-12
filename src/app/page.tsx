@@ -4,7 +4,6 @@ import { FeaturedProducts } from "@/components/home/featured-products";
 import { Hero } from "@/components/home/hero";
 import { Newsletter } from "@/components/home/newsletter";
 import { OrderJourney } from "@/components/home/order-journey";
-import { ResearchResources } from "@/components/home/research-resources";
 import { StatsBar } from "@/components/home/stats-bar";
 import { Testimonials } from "@/components/home/testimonials";
 import { TrustStrip } from "@/components/home/trust-strip";
@@ -69,7 +68,6 @@ export default async function HomePage() {
       <OrderJourney />
       <CtaBanner />
       <Testimonials />
-      <ResearchResources />
       <Newsletter />
     </>
   );

@@ -2,6 +2,7 @@
 
 import { Filter, X } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { FORCE_CATALOG_OUT_OF_STOCK } from "@/lib/catalog-status";
 import {
   DEFAULT_PRODUCT_FILTERS,
   type AvailabilityFilter,
@@ -173,29 +174,41 @@ export function ProductFilters({
         </div>
 
         {/* Availability */}
-        <div>
-          <p className="mb-2 text-xs font-medium uppercase tracking-wider text-muted-foreground">
-            Availability
-          </p>
-          <div className="space-y-1.5">
-            {AVAILABILITY_OPTIONS.map((opt) => (
-              <label
-                key={opt.value}
-                className="flex cursor-pointer items-center gap-2.5 rounded-lg px-2 py-1.5 transition-colors hover:bg-muted/60"
-              >
-                <input
-                  type="radio"
-                  name="availability"
-                  value={opt.value}
-                  checked={filters.availability === opt.value}
-                  onChange={() => update({ availability: opt.value })}
-                  className="h-4 w-4 border-border text-navy focus:ring-ring"
-                />
-                <span className="text-sm text-foreground">{opt.label}</span>
-              </label>
-            ))}
+        {!FORCE_CATALOG_OUT_OF_STOCK && (
+          <div>
+            <p className="mb-2 text-xs font-medium uppercase tracking-wider text-muted-foreground">
+              Availability
+            </p>
+            <div className="space-y-1.5">
+              {AVAILABILITY_OPTIONS.map((opt) => (
+                <label
+                  key={opt.value}
+                  className="flex cursor-pointer items-center gap-2.5 rounded-lg px-2 py-1.5 transition-colors hover:bg-muted/60"
+                >
+                  <input
+                    type="radio"
+                    name="availability"
+                    value={opt.value}
+                    checked={filters.availability === opt.value}
+                    onChange={() => update({ availability: opt.value })}
+                    className="h-4 w-4 border-border text-navy focus:ring-ring"
+                  />
+                  <span className="text-sm text-foreground">{opt.label}</span>
+                </label>
+              ))}
+            </div>
           </div>
-        </div>
+        )}
+        {FORCE_CATALOG_OUT_OF_STOCK && (
+          <div className="rounded-lg border border-amber-200/80 bg-amber-50 px-3 py-2.5">
+            <p className="text-xs font-bold uppercase tracking-wider text-amber-800">
+              Availability
+            </p>
+            <p className="mt-1 text-xs leading-relaxed text-amber-950/80">
+              All compounds are currently out of stock while we restock.
+            </p>
+          </div>
+        )}
 
         {/* COA */}
         <div>

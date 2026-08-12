@@ -4,7 +4,15 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { AnimatePresence, motion } from "framer-motion";
-import { FlaskConical, Loader2, Search, X } from "lucide-react";
+import {
+  BookOpen,
+  FileCheck2,
+  FlaskConical,
+  HelpCircle,
+  Loader2,
+  Search,
+  X,
+} from "lucide-react";
 import { cn, formatCurrency } from "@/lib/utils";
 
 interface SearchResult {
@@ -15,6 +23,8 @@ interface SearchResult {
   imageUrl?: string | null;
   price?: number | null;
   category?: string | null;
+  type?: "product" | "article" | "faq" | "coa";
+  href?: string;
 }
 
 interface SearchModalProps {
@@ -43,8 +53,20 @@ export function SearchModal({ isOpen, onClose }: SearchModalProps) {
     try {
       const res = await fetch(`/api/search?q=${encodeURIComponent(q.trim())}`);
       if (res.ok) {
-        const data = (await res.json()) as { results?: SearchResult[] };
-        setResults(data.results ?? []);
+        const data = (await res.json()) as {
+          products?: SearchResult[];
+          articles?: SearchResult[];
+          faqs?: SearchResult[];
+          coas?: SearchResult[];
+        };
+        setResults(
+          [
+            ...(data.products ?? []),
+            ...(data.articles ?? []),
+            ...(data.faqs ?? []),
+            ...(data.coas ?? []),
+          ].slice(0, 12)
+        );
       } else {
         setResults([]);
       }
@@ -124,7 +146,7 @@ export function SearchModal({ isOpen, onClose }: SearchModalProps) {
             transition={{ type: "spring", damping: 24, stiffness: 260 }}
             role="dialog"
             aria-modal="true"
-            aria-label="Search products"
+                    aria-label="Search products"
             className="relative w-full max-w-2xl overflow-hidden rounded-2xl border border-sky/20 bg-white/95 shadow-2xl shadow-sky/20 backdrop-blur-xl"
           >
         <div className="flex items-center gap-3 border-b border-sky/10 bg-gradient-to-r from-sky/5 to-cyan/5 px-5">
@@ -134,7 +156,7 @@ export function SearchModal({ isOpen, onClose }: SearchModalProps) {
             type="search"
             value={query}
             onChange={(e) => handleInputChange(e.target.value)}
-            placeholder="Search peptides, supplies, and more..."
+            placeholder="Search products, articles, FAQs, and COAs..."
             className="flex-1 bg-transparent py-4.5 text-base text-foreground outline-none placeholder:text-muted-foreground"
             autoComplete="off"
           />
@@ -157,7 +179,7 @@ export function SearchModal({ isOpen, onClose }: SearchModalProps) {
               <div className="mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-sky/15 to-cyan/15">
                 <FlaskConical className="h-7 w-7 text-sky" />
               </div>
-              Start typing to search our catalog
+              Search the product catalog
             </div>
           )}
 
@@ -172,7 +194,7 @@ export function SearchModal({ isOpen, onClose }: SearchModalProps) {
               {results.map((result) => (
                 <li key={result.id}>
                   <Link
-                    href={`/shop/${result.slug}`}
+                    href={result.href ?? `/shop/${result.slug}`}
                     onClick={onClose}
                     className="flex items-center gap-4 px-5 py-3.5 transition-all hover:bg-gradient-to-r hover:from-sky/5 hover:to-cyan/5"
                   >
@@ -187,7 +209,15 @@ export function SearchModal({ isOpen, onClose }: SearchModalProps) {
                         />
                       ) : (
                         <div className="flex h-full items-center justify-center">
-                          <FlaskConical className="h-5 w-5 text-sky/40" />
+                          {result.type === "article" ? (
+                            <BookOpen className="h-5 w-5 text-sky" />
+                          ) : result.type === "faq" ? (
+                            <HelpCircle className="h-5 w-5 text-cyan" />
+                          ) : result.type === "coa" ? (
+                            <FileCheck2 className="h-5 w-5 text-teal" />
+                          ) : (
+                            <FlaskConical className="h-5 w-5 text-sky/40" />
+                          )}
                         </div>
                       )}
                     </div>
@@ -198,6 +228,11 @@ export function SearchModal({ isOpen, onClose }: SearchModalProps) {
                       {result.shortDescription && (
                         <p className="truncate text-xs text-muted-foreground">
                           {result.shortDescription}
+                        </p>
+                      )}
+                      {result.type && (
+                        <p className="mt-1 text-[10px] font-bold uppercase tracking-wider text-sky">
+                          {result.type}
                         </p>
                       )}
                     </div>

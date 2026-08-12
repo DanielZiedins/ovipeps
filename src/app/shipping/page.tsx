@@ -3,7 +3,7 @@ import Link from "next/link";
 import { PageHero } from "@/components/content/page-hero";
 import { Breadcrumb } from "@/components/content/breadcrumb";
 import { LegalSectionList } from "@/components/content/legal-section";
-import { db } from "@/lib/db";
+import { getSiteSetting } from "@/lib/products";
 
 export const metadata: Metadata = {
   title: "Shipping Policy",
@@ -12,17 +12,13 @@ export const metadata: Metadata = {
 };
 
 export default async function ShippingPage() {
-  const settings = await db.siteSetting.findMany({
-    where: {
-      key: { in: ["shipping_threshold", "free_shipping_message"] },
-    },
-  });
-
-  const threshold =
-    settings.find((s) => s.key === "shipping_threshold")?.value ?? "300";
+  const [configuredThreshold, configuredMessage] = await Promise.all([
+    getSiteSetting("shipping_threshold"),
+    getSiteSetting("free_shipping_message"),
+  ]);
+  const threshold = configuredThreshold ?? "300";
   const freeShippingMessage =
-    settings.find((s) => s.key === "free_shipping_message")?.value ??
-    `Free expedited shipping on orders over $${threshold} CAD`;
+    configuredMessage ?? `Free shipping on orders over $${threshold} CAD`;
 
   return (
     <>
@@ -86,9 +82,9 @@ export default async function ShippingPage() {
                 <>
                   <p>{freeShippingMessage}.</p>
                   <p>
-                    Standard shipping rates apply to orders below the free-shipping
-                    threshold. Shipping costs are calculated at checkout based on
-                    package weight, destination province, and selected service level.
+                    A flat shipping rate is shown at checkout for orders below the
+                    free-shipping threshold. Any applicable shipping charge appears
+                    before you place the order.
                   </p>
                 </>
               ),

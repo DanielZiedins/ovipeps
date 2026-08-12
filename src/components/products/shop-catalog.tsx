@@ -14,6 +14,7 @@ import {
   type ProductCardData,
   type ProductFilterState,
 } from "@/types/product";
+import { FORCE_CATALOG_OUT_OF_STOCK } from "@/lib/catalog-status";
 
 interface ShopCatalogProps {
   products: ProductCardData[];
@@ -150,8 +151,16 @@ export function ShopCatalog({
               animate={{ opacity: 1, scale: 1 }}
               className="rounded-2xl border-2 border-dashed border-sky/30 bg-gradient-to-br from-sky/5 to-cyan/5 px-6 py-20 text-center"
             >
-              <p className="text-lg font-bold text-foreground">No compounds match your criteria</p>
-              <p className="mt-2 text-sm text-muted-foreground">Try adjusting your filters or search terms.</p>
+              <p className="text-lg font-bold text-foreground">
+                {FORCE_CATALOG_OUT_OF_STOCK && filters.availability === "in-stock"
+                  ? "All compounds are currently restocking"
+                  : "No compounds match your criteria"}
+              </p>
+              <p className="mt-2 text-sm text-muted-foreground">
+                {FORCE_CATALOG_OUT_OF_STOCK && filters.availability === "in-stock"
+                  ? "Clear filters to browse the full catalog preview."
+                  : "Try adjusting your filters or search terms."}
+              </p>
               <button
                 type="button"
                 onClick={() => {
