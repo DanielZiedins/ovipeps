@@ -170,10 +170,12 @@ export function ProductCard({
           </h3>
           <div className="mt-auto flex items-end justify-between gap-2 pt-2">
             <p className="text-xl font-bold text-navy-deep">
+              {!inStock ? "Coming Soon" : <>
               {hasMultipleVariants && (
                 <span className="mr-1 text-xs font-normal text-muted-foreground">from</span>
               )}
               {formatCurrency(lowestPrice)}
+              </>}
             </p>
             <span
               className={cn(
@@ -184,7 +186,7 @@ export function ProductCard({
               <span className={cn("h-1.5 w-1.5 rounded-full", inStock ? "bg-success animate-pulse" : "bg-muted-foreground")} />
               {inStock
                 ? `${availableVariant?.stockQuantity ?? "Limited"} Vials Left`
-                : "Restocking"}
+                : "Coming Soon"}
             </span>
           </div>
         </div>
