@@ -1,4 +1,5 @@
 import { db } from "@/lib/db";
+import { syncAvailableProducts } from "@/lib/catalog-sync";
 import { FALLBACK_PRODUCTS, FALLBACK_SETTINGS } from "@/lib/fallback-data";
 import {
   applyCatalogVariantPolicy,
@@ -75,10 +76,7 @@ export function getProductCardData(product: ProductWithVariants): ProductCardDat
     id: product.id,
     name: getCatalogProductName(product.slug, product.name),
     slug: product.slug,
-    imageUrl:
-      product.slug === "mots-c"
-        ? "/images/products/cjc-ipamorelin.jpg"
-        : product.imageUrl,
+    imageUrl: product.imageUrl,
     researchCategory: product.researchCategory,
     shortDescription: product.shortDescription,
     hasCoa: product.coaDocuments.length > 0,
@@ -193,6 +191,7 @@ export async function getProducts(
   filters: ProductQueryFilters = {}
 ): Promise<ProductCardData[]> {
   try {
+    await syncAvailableProducts();
     const sort = filters.sort ?? "featured";
 
     const orderBy: Prisma.ProductOrderByWithRelationInput[] =
@@ -223,6 +222,7 @@ export async function getProducts(
 
 export async function getProductBySlug(slug: string): Promise<ProductDetail | null> {
   try {
+    await syncAvailableProducts();
     const product = await db.product.findFirst({
       where: { slug, published: true },
       include: productDetailInclude,
@@ -231,10 +231,7 @@ export async function getProductBySlug(slug: string): Promise<ProductDetail | nu
       return {
         ...product,
         name: getCatalogProductName(product.slug, product.name),
-        imageUrl:
-          product.slug === "mots-c"
-            ? "/images/products/cjc-ipamorelin.jpg"
-            : product.imageUrl,
+        imageUrl: product.imageUrl,
         variants: product.variants.map((v) => ({
           ...v,
           ...applyCatalogVariantPolicy(v.sku, v.price, v.stockQuantity),
@@ -313,6 +310,7 @@ export async function getProductBySlug(slug: string): Promise<ProductDetail | nu
 
 export async function getFeaturedProducts(limit = 8): Promise<ProductCardData[]> {
   try {
+    await syncAvailableProducts();
     const products = await db.product.findMany({
       where: { published: true, featured: true },
       include: productCardInclude,
