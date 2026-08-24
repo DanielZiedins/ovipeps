@@ -81,7 +81,12 @@ export default async function OrderConfirmationPage({
     notFound();
   }
 
-  const session = await auth();
+  const session = await auth().catch((error) => {
+    // Guest confirmation remains securely accessible through its signed token
+    // even if account authentication is temporarily unavailable.
+    console.error("Optional confirmation session lookup failed", error);
+    return null;
+  });
   const role = (session?.user as { role?: string } | undefined)?.role;
   const canAccess =
     role === "ADMIN" ||
