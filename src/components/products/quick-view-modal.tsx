@@ -140,7 +140,9 @@ export function QuickViewModal({
             )}
 
             <p className="mt-4 text-2xl font-semibold text-navy-deep">
-              {selectedVariant
+              {!inStock
+                ? "Coming Soon"
+                : selectedVariant
                 ? formatCurrency(selectedVariant.price)
                 : formatCurrency(lowestPrice)}
             </p>
@@ -191,7 +193,7 @@ export function QuickViewModal({
                 />
                 {inStock
                   ? `Available — ${selectedVariant?.stockQuantity ?? "limited"} vials left`
-                  : "Restocking / Coming Soon"}
+                  : "Coming Soon"}
               </span>
             </div>
 
@@ -208,7 +210,7 @@ export function QuickViewModal({
                 )}
               >
                 <ShoppingBag className="h-4 w-4" />
-                {inStock ? "Add to Cart" : "Restocking / Coming Soon"}
+                {inStock ? "Add to Cart" : "Coming Soon"}
               </button>
               <Link
                 href={`/shop/${product.slug}`}
