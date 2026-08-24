@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import {
+  Calculator,
   ChevronDown,
   FlaskConical,
   Menu,
@@ -72,6 +73,7 @@ const shopSections = [
 ];
 
 const mobileNavLinks = [
+  { label: "Peptide Calculator", href: "/calculator" },
   { label: "About", href: "/about" },
   { label: "Shipping", href: "/shipping" },
   { label: "Contact", href: "/contact" },
@@ -179,6 +181,13 @@ export function Header() {
             >
               Contact
             </Link>
+            <Link
+              href="/calculator"
+              className="ml-1 inline-flex items-center gap-2 rounded-lg bg-gradient-to-r from-sky to-cyan px-4 py-2 text-sm font-bold text-white shadow-md shadow-sky/20 transition-all hover:-translate-y-0.5 hover:shadow-lg hover:shadow-sky/25"
+            >
+              <Calculator className="h-4 w-4" />
+              Peptide Calculator
+            </Link>
           </nav>
 
           <div className="flex items-center gap-1 sm:gap-2">
@@ -283,9 +292,16 @@ export function Header() {
                   key={link.href}
                   href={link.href}
                   onClick={() => setMobileOpen(false)}
-                  className="block rounded-lg px-3 py-2.5 text-sm font-medium text-foreground hover:bg-secondary"
+                  className={cn(
+                    "block rounded-lg px-3 py-2.5 text-sm font-medium text-foreground hover:bg-secondary",
+                    link.href === "/calculator" &&
+                      "mt-3 bg-gradient-to-r from-sky to-cyan font-bold text-white shadow-md shadow-sky/20 hover:text-white"
+                  )}
                 >
-                  {link.label}
+                  <span className="flex items-center gap-2">
+                    {link.href === "/calculator" ? <Calculator className="h-4 w-4" /> : null}
+                    {link.label}
+                  </span>
                 </Link>
               ))}
             </div>
