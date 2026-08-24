@@ -29,6 +29,45 @@ async function syncCatalog() {
     });
   }
 
+  const glp3 = await db.product.findUnique({
+    where: { slug: "glp-3" },
+    include: { variants: true },
+  });
+
+  if (glp3) {
+    const fiveMg = glp3.variants.find((variant) => variant.sku === "GLP3-5MG");
+    const tenMg = glp3.variants.find((variant) => variant.sku === "GLP3-10MG");
+    const transferredStock =
+      fiveMg && tenMg && fiveMg.stockQuantity > 0 && tenMg.stockQuantity === 0
+        ? Math.min(fiveMg.stockQuantity, 4)
+        : null;
+
+    await db.$transaction([
+      db.productVariant.updateMany({
+        where: { productId: glp3.id, sku: "GLP3-5MG" },
+        data: {
+          price: 0,
+          stockQuantity: 0,
+          inStock: false,
+          isDefault: false,
+        },
+      }),
+      db.productVariant.updateMany({
+        where: { productId: glp3.id, sku: "GLP3-10MG" },
+        data: {
+          price: 80,
+          ...(transferredStock !== null
+            ? {
+                stockQuantity: transferredStock,
+                inStock: transferredStock > 0,
+              }
+            : {}),
+          isDefault: true,
+        },
+      }),
+    ]);
+  }
+
   const ghk = await db.product.upsert({
     where: { slug: "ghk-cu" },
     update: {
