@@ -142,6 +142,7 @@ export function CheckoutForm() {
           items: items.map((item) => ({
             productId: item.productId,
             variantId: item.variantId,
+            sku: item.sku,
             quantity: item.quantity,
           })),
           discountCode,
