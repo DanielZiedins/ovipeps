@@ -47,12 +47,16 @@ export const emailTemplates = {
 
 export async function sendEmail(to: string, template: EmailTemplate) {
   const apiKey = process.env.RESEND_API_KEY;
-  if (!apiKey) {
-    console.warn(`[Email not sent: RESEND_API_KEY missing] To: ${to} | Subject: ${template.subject}`);
-    return { success: false, error: "RESEND_API_KEY is not configured" };
+  const from = process.env.RESEND_FROM_EMAIL;
+  if (!apiKey || !from) {
+    console.warn(`[Email not sent: Resend sender is not fully configured] To: ${to} | Subject: ${template.subject}`);
+    return {
+      success: false,
+      error: "RESEND_API_KEY and RESEND_FROM_EMAIL must be configured",
+    };
   }
   const { data, error } = await new Resend(apiKey).emails.send({
-    from: process.env.RESEND_FROM_EMAIL ?? "OVIpeps Orders <orders@ovipeps.ca>",
+    from,
     replyTo: process.env.RESEND_REPLY_TO ?? "ovipeps@gmail.com",
     to, subject: template.subject, html: template.html, text: template.text,
   });

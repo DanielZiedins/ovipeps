@@ -259,7 +259,7 @@ export async function createOrder(input: CreateOrderInput) {
         orderNumber: order.orderNumber,
         total: `$${order.total.toFixed(2)} CAD`,
         name: input.shippingAddress.firstName,
-        etransferEmail: eTransferSetting?.value ?? "orders@ovipeps.ca",
+        etransferEmail: eTransferSetting?.value ?? "ovipeps@gmail.com",
         autodepositName: "IN Z",
         items: order.items.map((item) => ({
           name: item.productName,

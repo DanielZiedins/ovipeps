@@ -45,6 +45,6 @@ Use the secure button in this email to choose a new password. The link expires i
 
 ## Sending configuration
 
-- From: `OVIpeps Orders <orders@ovipeps.ca>` after `ovipeps.ca` is verified in Resend
+- From: the sender explicitly verified in the connected Resend account
 - Reply-To: `ovipeps@gmail.com`
 - Newsletter subscribers: Resend Audience configured with `RESEND_AUDIENCE_ID`

@@ -21,10 +21,10 @@ async function main() {
   const adminPassword = await bcrypt.hash(adminSeedPassword, 12);
 
   const admin = await prisma.user.upsert({
-    where: { email: "admin@ovipeps.ca" },
-    update: {},
+    where: { email: "ovipeps@gmail.com" },
+    update: { role: "ADMIN" },
     create: {
-      email: "admin@ovipeps.ca",
+      email: "ovipeps@gmail.com",
       passwordHash: adminPassword,
       firstName: "Admin",
       lastName: "OVIpeps",
@@ -223,8 +223,8 @@ async function main() {
   }
 
   const settings = [
-    { key: "etransfer_email", value: "orders@ovipeps.ca" },
-    { key: "etransfer_instructions", value: "Please send your Interac e-Transfer to orders@ovipeps.ca. Include your order number in the message field. Orders are processed once payment is confirmed." },
+    { key: "etransfer_email", value: "ovipeps@gmail.com" },
+    { key: "etransfer_instructions", value: "Please send your Interac e-Transfer to ovipeps@gmail.com. Include your order number in the message field. Orders are processed once payment is confirmed." },
     { key: "shipping_threshold", value: "300" },
     { key: "free_shipping_message", value: "Free expedited shipping on orders over $300 CAD" },
     { key: "affiliate_default_commission", value: "15" },

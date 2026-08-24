@@ -27,7 +27,7 @@ export async function generateMetadata({
 
 async function getEtransferSettings() {
   const defaults = {
-    email: "orders@ovipeps.ca",
+    email: "ovipeps@gmail.com",
     instructions:
       "Please send your Interac e-Transfer and include your order number in the message field.",
   };

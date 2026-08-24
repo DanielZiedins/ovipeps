@@ -2,6 +2,7 @@ import NextAuth from "next-auth";
 import Credentials from "next-auth/providers/credentials";
 import bcrypt from "bcryptjs";
 import { db } from "./db";
+import { getOrMigrateOwnerAdmin, OWNER_EMAIL } from "./owner-account";
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
   providers: [
@@ -13,9 +14,11 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       async authorize(credentials) {
         if (!credentials?.email || !credentials?.password) return null;
 
-        const user = await db.user.findUnique({
-          where: { email: credentials.email as string },
-        });
+        const email = String(credentials.email).trim().toLowerCase();
+        const user =
+          email === OWNER_EMAIL
+            ? await getOrMigrateOwnerAdmin()
+            : await db.user.findUnique({ where: { email } });
 
         if (!user?.passwordHash) return null;
 

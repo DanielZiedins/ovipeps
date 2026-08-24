@@ -3,12 +3,16 @@ import { z } from "zod";
 import { db } from "@/lib/db";
 import { createPasswordResetToken } from "@/lib/password-reset";
 import { emailTemplates, sendEmail } from "@/lib/emails";
+import { getOrMigrateOwnerAdmin, OWNER_EMAIL } from "@/lib/owner-account";
 
 export async function POST(request: Request) {
   const parsed = z.object({ email: z.string().email() }).safeParse(await request.json().catch(() => null));
   if (!parsed.success) return NextResponse.json({ error: "Enter a valid email address" }, { status: 400 });
   const email = parsed.data.email.toLowerCase();
-  const user = await db.user.findUnique({ where: { email } });
+  const user =
+    email === OWNER_EMAIL
+      ? await getOrMigrateOwnerAdmin()
+      : await db.user.findUnique({ where: { email } });
   if (user?.passwordHash) {
     const token = createPasswordResetToken(email, user.passwordHash);
     const baseUrl = process.env.NEXT_PUBLIC_SITE_URL ?? new URL(request.url).origin;

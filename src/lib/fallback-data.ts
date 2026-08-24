@@ -104,7 +104,7 @@ export const FALLBACK_SETTINGS: Record<string, string> = {
   research_disclaimer: "All products are sold for research purposes only. Not intended for human consumption.",
   shipping_threshold: "300",
   free_shipping_message: "Free shipping on orders over $300 CAD",
-  etransfer_email: "orders@ovipeps.ca",
+  etransfer_email: "ovipeps@gmail.com",
   etransfer_instructions:
     "Send your Interac e-Transfer after placing an order and include the unique order number in the message field.",
   trust_1_title: "Canadian Fulfillment",
