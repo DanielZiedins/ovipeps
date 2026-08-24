@@ -59,7 +59,7 @@ export const FALLBACK_PRODUCTS: ProductCardData[] = [
     id: "fb-cjcipa",
     name: "CJC/Ipamorelin",
     slug: "mots-c",
-    imageUrl: null,
+    imageUrl: "/images/products/cjc-ipamorelin.jpg",
     researchCategory: "Peptide Blend",
     isNew: true,
     featured: true,
