@@ -3,7 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { motion } from "framer-motion";
-import { Eye, ShoppingBag, ShieldCheck, Sparkles, Zap } from "lucide-react";
+import { Eye, FlaskConical, ShoppingBag, ShieldCheck, Sparkles, Zap } from "lucide-react";
 import { cn, formatCurrency } from "@/lib/utils";
 import { useCartStore } from "@/store/cart";
 import {
@@ -93,8 +93,13 @@ export function ProductCard({
               />
             </motion.div>
           ) : (
-            <div className="flex h-full items-center justify-center">
-              <div className="h-24 w-24 rounded-full border-2 border-dashed border-sky/20" />
+            <div className="flex h-full flex-col items-center justify-center gap-3 text-center">
+              <div className="flex h-24 w-24 items-center justify-center rounded-full border border-sky/20 bg-white/70 text-sky shadow-sm">
+                <FlaskConical className="h-10 w-10" />
+              </div>
+              <p className="text-xs font-semibold uppercase tracking-wider text-sky/70">
+                Product image coming soon
+              </p>
             </div>
           )}
 
@@ -179,7 +184,7 @@ export function ProductCard({
               <span className={cn("h-1.5 w-1.5 rounded-full", inStock ? "bg-success animate-pulse" : "bg-muted-foreground")} />
               {inStock
                 ? `${availableVariant?.stockQuantity ?? "Limited"} Vials Left`
-                : "Restocking / Coming Soon"}
+                : "Restocking"}
             </span>
           </div>
         </div>
