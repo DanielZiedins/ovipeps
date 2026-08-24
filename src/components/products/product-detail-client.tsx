@@ -62,7 +62,7 @@ export function ProductDetailClient({
       {selectedVariant && (
         <div>
           <p className="text-3xl font-semibold tracking-tight text-navy-deep">
-            {formatCurrency(selectedVariant.price)}
+            {inStock ? formatCurrency(selectedVariant.price) : "Coming Soon"}
           </p>
           {hasMultipleVariants && (
             <p className="mt-1 text-sm text-muted-foreground">
@@ -99,7 +99,7 @@ export function ProductDetailClient({
         </div>
       )}
 
-      <div className="flex items-center gap-3">
+      {inStock && <div className="flex items-center gap-3">
         <span className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
           Quantity
         </span>
@@ -131,7 +131,7 @@ export function ProductDetailClient({
             <Plus className="h-4 w-4" />
           </button>
         </div>
-      </div>
+      </div>}
 
       <div className="flex items-center gap-2">
         <span
@@ -150,7 +150,7 @@ export function ProductDetailClient({
           />
           {inStock
             ? `Available now — only ${stockQuantity} vials in stock`
-            : "Restocking / Coming Soon"}
+            : "Coming Soon"}
         </span>
       </div>
 
@@ -161,7 +161,7 @@ export function ProductDetailClient({
         disabled={!inStock || !selectedVariant}
       >
         <ShoppingBag className="h-4 w-4" />
-        {inStock ? "Add to Cart" : "Restocking / Coming Soon"}
+        {inStock ? "Add to Cart" : "Coming Soon"}
       </Button>
 
       {!inStock && (
