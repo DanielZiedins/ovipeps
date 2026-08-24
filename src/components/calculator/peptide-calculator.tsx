@@ -2,7 +2,6 @@
 
 import { useMemo, useState } from "react";
 import {
-  Beaker,
   Copy,
   Droplets,
   FlaskConical,
@@ -103,6 +102,12 @@ const DEFAULTS = {
   syringeScale: "u100" as SyringeScale,
 };
 
+const SYRINGE_SIZES = [
+  { label: "0.3 mL", units: 30 },
+  { label: "0.5 mL", units: 50 },
+  { label: "1.0 mL", units: 100 },
+] as const;
+
 export function PeptideCalculator() {
   const { toast } = useToast();
   const [vialQuantityMg, setVialQuantityMg] = useState(DEFAULTS.vialQuantityMg);
@@ -112,6 +117,7 @@ export function PeptideCalculator() {
   const [syringeScale, setSyringeScale] = useState<SyringeScale>(
     DEFAULTS.syringeScale
   );
+  const [syringeCapacity, setSyringeCapacity] = useState(100);
 
   const parsedInput = useMemo(
     () => ({
@@ -135,6 +141,7 @@ export function PeptideCalculator() {
     setTargetQuantity(DEFAULTS.targetQuantity);
     setTargetUnit(DEFAULTS.targetUnit);
     setSyringeScale(DEFAULTS.syringeScale);
+    setSyringeCapacity(100);
   }
 
   async function handleCopy() {
@@ -156,8 +163,8 @@ export function PeptideCalculator() {
   }
 
   return (
-    <div className="grid gap-8 lg:grid-cols-[1fr_1fr]">
-      <Card className="overflow-hidden">
+    <div className="overflow-hidden rounded-3xl border border-sky/15 bg-card shadow-2xl shadow-navy/10 lg:grid lg:grid-cols-[1.08fr_0.92fr]">
+      <div className="overflow-hidden">
         <CardHeader className="border-b border-border/60 bg-muted/20">
           <div className="flex items-center gap-3">
             <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-navy/10 text-navy">
@@ -227,22 +234,33 @@ export function PeptideCalculator() {
             </Select>
           </div>
 
-          <Select
-            label={
-              <FieldLabel
-                label="Syringe scale (optional)"
-                tooltip="U-100 syringes mark 100 units per 1 mL. Select none if you only need volume."
-              />
-            }
-            value={syringeScale}
-            onChange={(e) => setSyringeScale(e.target.value as SyringeScale)}
-            hint="Used to convert volume to syringe graduations"
-          >
-            <option value="none">None — volume only</option>
-            <option value="u100">U-100 (100 units/mL)</option>
-            <option value="u50">U-50 (50 units/mL)</option>
-            <option value="u30">U-30 (30 units/mL)</option>
-          </Select>
+          <fieldset>
+            <legend className="mb-2 inline-flex items-center gap-1.5 text-sm font-medium">
+              Syringe size
+              <FieldTooltip text="Select the capacity printed on your U-100 insulin syringe." />
+            </legend>
+            <div className="grid grid-cols-3 gap-2">
+              {SYRINGE_SIZES.map((option) => (
+                <button
+                  key={option.units}
+                  type="button"
+                  onClick={() => {
+                    setSyringeCapacity(option.units);
+                    setSyringeScale("u100");
+                  }}
+                  className={cn(
+                    "rounded-xl border px-2 py-3 text-center transition-all",
+                    syringeCapacity === option.units
+                      ? "border-sky bg-sky/10 text-navy-deep shadow-sm ring-1 ring-sky/20"
+                      : "border-border bg-card text-muted-foreground hover:border-sky/40"
+                  )}
+                >
+                  <span className="block text-sm font-bold">{option.label}</span>
+                  <span className="mt-0.5 block text-xs">{option.units} units</span>
+                </button>
+              ))}
+            </div>
+          </fieldset>
 
           <div className="flex flex-wrap gap-3 pt-2">
             <Button type="button" variant="outline" onClick={handleReset}>
@@ -260,27 +278,15 @@ export function PeptideCalculator() {
             </Button>
           </div>
         </CardContent>
-      </Card>
+      </div>
 
-      <div className="space-y-6">
-        <Card>
-          <CardHeader className="border-b border-border/60 bg-muted/20">
-            <div className="flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-teal/10 text-teal">
-                <Beaker className="size-5" />
-              </div>
-              <div>
-                <CardTitle>Calculated Results</CardTitle>
-                <p className="text-sm text-muted-foreground">
-                  Live output based on your inputs.
-                </p>
-              </div>
-            </div>
-          </CardHeader>
-          <CardContent className="pt-6">
+      <div className="bg-gradient-to-br from-navy-deep via-navy to-sky p-6 text-white sm:p-8 lg:p-10">
+        <div className="flex h-full flex-col justify-center">
+          <div className="text-center">
+            <p className="text-xs font-bold uppercase tracking-[0.24em] text-cyan-bright">Draw to</p>
             {!result.isValid ? (
-              <div className="rounded-lg border border-warning/25 bg-warning/8 px-4 py-3 text-sm text-foreground">
-                <p className="font-medium text-navy-deep">Enter valid values</p>
+              <div className="mt-6 rounded-xl border border-white/15 bg-white/10 px-4 py-4 text-sm text-white">
+                <p className="font-semibold">Enter valid values</p>
                 <ul className="mt-2 space-y-1 text-muted-foreground">
                   {result.errors.map((error) => (
                     <li key={error}>{error}</li>
@@ -288,82 +294,50 @@ export function PeptideCalculator() {
                 </ul>
               </div>
             ) : (
-              <div className="grid gap-3 sm:grid-cols-2">
-                <ResultMetric
-                  label="Concentration"
-                  value={formatCalculatorNumber(result.concentrationMgMl!)}
-                  unit="mg/mL"
-                />
-                <ResultMetric
-                  label="Concentration"
-                  value={formatCalculatorNumber(result.concentrationMcgMl!)}
-                  unit="mcg/mL"
-                />
-                <ResultMetric
-                  label="Volume needed"
-                  value={formatCalculatorNumber(result.volumeNeededMl!)}
-                  unit="mL"
-                  highlight
-                />
-                {result.syringeUnits !== null ? (
-                  <ResultMetric
-                    label="Syringe units"
-                    value={formatCalculatorNumber(result.syringeUnits, 1)}
-                    unit="units"
-                    highlight
-                  />
-                ) : null}
-              </div>
+              <>
+                <p className="mt-2 text-6xl font-bold tracking-tight sm:text-7xl">
+                  {formatCalculatorNumber(result.syringeUnits!, 1)}
+                  <span className="ml-2 text-base font-medium tracking-normal text-white/60">units</span>
+                </p>
+                <div className="mx-auto mt-8 flex w-full max-w-md items-center" aria-label={`Syringe filled to ${Math.min(100, (result.syringeUnits! / syringeCapacity) * 100).toFixed(0)} percent`}>
+                  <div className="h-12 w-6 rounded-l border-2 border-r-0 border-white/60" />
+                  <div className="relative h-10 flex-1 overflow-hidden rounded border-2 border-white/60 bg-white/10">
+                    <div className="absolute inset-y-0 left-0 bg-gradient-to-r from-cyan to-cyan-bright transition-all duration-300" style={{ width: `${Math.min(100, (result.syringeUnits! / syringeCapacity) * 100)}%` }} />
+                    <div className="absolute inset-0 flex justify-around">{Array.from({ length: 21 }, (_, index) => <span key={index} className={cn("w-px bg-white/60", index % 5 === 0 ? "h-4" : "h-2.5")} />)}</div>
+                  </div>
+                  <div className="h-0.5 w-12 bg-white/60" />
+                </div>
+                {result.syringeUnits! > syringeCapacity ? <div className="mt-6 rounded-xl bg-amber-100 px-4 py-3 text-left text-sm font-semibold text-amber-950">This amount exceeds the selected syringe capacity. Recheck every entry.</div> : null}
+                <div className="mt-8 grid grid-cols-2 divide-x divide-white/15 border-y border-white/15 py-4 text-sm">
+                  <div><span className="block text-xs text-white/55">Volume</span><strong className="mt-1 block">{formatCalculatorNumber(result.volumeNeededMl!)} mL</strong></div>
+                  <div><span className="block text-xs text-white/55">Concentration</span><strong className="mt-1 block">{formatCalculatorNumber(result.concentrationMgMl!)} mg/mL</strong></div>
+                </div>
+                <p className="mt-5 text-xs text-white/50">Your entries stay in your browser.</p>
+              </>
             )}
-          </CardContent>
-        </Card>
-
+          </div>
+        </div>
+      </div>
+      <div className="space-y-6 border-t border-border p-6 lg:col-span-2 lg:p-8">
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+          {result.isValid ? <>
+            <ResultMetric label="Concentration" value={formatCalculatorNumber(result.concentrationMgMl!)} unit="mg/mL" />
+            <ResultMetric label="Concentration" value={formatCalculatorNumber(result.concentrationMcgMl!)} unit="mcg/mL" />
+            <ResultMetric label="Volume needed" value={formatCalculatorNumber(result.volumeNeededMl!)} unit="mL" highlight />
+            <ResultMetric label="Syringe units" value={formatCalculatorNumber(result.syringeUnits!, 1)} unit="units" highlight />
+          </> : null}
+        </div>
         <Card>
-          <CardHeader>
-            <CardTitle className="text-base">Formula reference</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4 text-sm text-muted-foreground">
-            <div className="flex gap-3">
-              <Droplets className="mt-0.5 size-4 shrink-0 text-accent" />
-              <p>
-                <span className="font-mono text-foreground">
-                  concentration (mg/mL) = vial quantity (mg) ÷ diluent volume (mL)
-                </span>
-              </p>
-            </div>
-            <div className="flex gap-3">
-              <Target className="mt-0.5 size-4 shrink-0 text-accent" />
-              <p>
-                <span className="font-mono text-foreground">
-                  volume needed (mL) = target (mg) ÷ concentration (mg/mL)
-                </span>
-                <span className="mt-1 block">
-                  Target in mcg is converted: mcg ÷ 1000 = mg
-                </span>
-              </p>
-            </div>
-            <div className="flex gap-3">
-              <Syringe className="mt-0.5 size-4 shrink-0 text-accent" />
-              <p>
-                <span className="font-mono text-foreground">
-                  syringe units = volume (mL) × units per mL
-                </span>
-                <span className="mt-1 block">
-                  U-100: 100 units per 1 mL · U-50: 50 units per 1 mL
-                </span>
-              </p>
-            </div>
+          <CardHeader><CardTitle className="text-base">Formula reference</CardTitle></CardHeader>
+          <CardContent className="grid gap-4 text-sm text-muted-foreground md:grid-cols-3">
+            <div className="flex gap-3"><Droplets className="mt-0.5 size-4 shrink-0 text-accent" /><p><span className="font-mono text-foreground">concentration = vial quantity ÷ diluent volume</span></p></div>
+            <div className="flex gap-3"><Target className="mt-0.5 size-4 shrink-0 text-accent" /><p><span className="font-mono text-foreground">volume = target ÷ concentration</span><span className="mt-1 block">mcg ÷ 1000 = mg</span></p></div>
+            <div className="flex gap-3"><Syringe className="mt-0.5 size-4 shrink-0 text-accent" /><p><span className="font-mono text-foreground">units = volume × 100</span><span className="mt-1 block">For U-100 insulin syringes</span></p></div>
           </CardContent>
         </Card>
-
         <div className="rounded-xl border border-burgundy/20 bg-burgundy/5 px-5 py-4">
           <p className="text-sm font-semibold text-burgundy">Research use only</p>
-          <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
-            This calculator is a laboratory research utility for reconstitution
-            mathematics. It does not provide medical advice, human dosing
-            recommendations, or instructions for administration. Products from
-            OVIPeps are intended for qualified laboratory research only.
-          </p>
+          <p className="mt-2 text-sm leading-relaxed text-muted-foreground">This calculator performs unit conversion using the values you enter. It does not provide medical advice, dosing recommendations, treatment schedules, or administration instructions. Independently verify all inputs and results with a qualified professional.</p>
         </div>
       </div>
     </div>
