@@ -13,7 +13,7 @@ export const FALLBACK_PRODUCTS: ProductCardData[] = [
     isNew: true,
     featured: true,
     variants: [
-      { id: "v1", name: "5mg", sku: "GLP3-5MG", price: 45, inStock: true, stockQuantity: 4, isDefault: true },
+      { id: "v1", name: "5mg", sku: "GLP3-5MG", price: 80, inStock: true, stockQuantity: 4, isDefault: true },
       { id: "v2", name: "10mg", sku: "GLP3-10MG", price: 80, inStock: false },
     ],
   },
