@@ -25,6 +25,7 @@ export interface ShippingAddress {
 export interface CreateOrderItem {
   productId: string;
   variantId: string;
+  sku?: string;
   quantity: number;
 }
 
@@ -90,23 +91,44 @@ export async function createOrder(input: CreateOrderInput) {
     throw new Error("Cart is empty");
   }
 
-  await syncAvailableProducts();
+  try {
+    await syncAvailableProducts();
+  } catch (error) {
+    // Checkout uses the canonical SKU policy below, so a nonessential catalog
+    // refresh must not block an otherwise valid order.
+    console.error("Catalog refresh during checkout failed", error);
+  }
 
-  const variantIds = input.items.map((item) => item.variantId);
+  const variantIds = input.items.map((item) => item.variantId).filter(Boolean);
+  const variantSkus = input.items
+    .map((item) => item.sku?.trim().toUpperCase())
+    .filter((sku): sku is string => Boolean(sku));
   const variants = await db.productVariant.findMany({
-    where: { id: { in: variantIds } },
+    where: {
+      OR: [
+        ...(variantIds.length ? [{ id: { in: variantIds } }] : []),
+        ...(variantSkus.length ? [{ sku: { in: variantSkus } }] : []),
+      ],
+    },
     include: { product: true },
   });
 
-  const variantMap = new Map(variants.map((variant) => [variant.id, variant]));
+  const variantsById = new Map(variants.map((variant) => [variant.id, variant]));
+  const variantsBySku = new Map(variants.map((variant) => [variant.sku, variant]));
 
   let subtotal = 0;
   const orderItems = input.items.map((item) => {
-    const variant = variantMap.get(item.variantId);
+    const variantById = variantsById.get(item.variantId);
+    const normalizedSku = item.sku?.trim().toUpperCase();
+    const variant =
+      variantById ??
+      (normalizedSku ? variantsBySku.get(normalizedSku) : undefined);
     if (!variant) {
-      throw new Error(`Product variant not found: ${item.variantId}`);
+      throw new Error(
+        "One or more cart items are no longer available. Please refresh your cart."
+      );
     }
-    if (variant.productId !== item.productId) {
+    if (variantById && variant.productId !== item.productId) {
       throw new Error("Product and variant mismatch");
     }
     const catalogVariant = applyCatalogVariantPolicy(
@@ -223,15 +245,21 @@ export async function createOrder(input: CreateOrderInput) {
     return created;
   });
 
-  const affiliateCode = input.affiliateCode ?? input.referralCode;
-  if (affiliateCode) {
-    await attributeOrder(order.id, affiliateCode);
+  try {
+    const affiliateCode = input.affiliateCode ?? input.referralCode;
+    if (affiliateCode) {
+      await attributeOrder(order.id, affiliateCode);
+    }
+  } catch (error) {
+    // Attribution is secondary and must never turn a completed order into a
+    // checkout failure for the customer.
+    console.error("Order affiliate attribution failed", error);
   }
 
-  const eTransferSetting = await db.siteSetting.findUnique({
-    where: { key: "etransfer_email" },
-  });
   try {
+    const eTransferSetting = await db.siteSetting.findUnique({
+      where: { key: "etransfer_email" },
+    });
     await sendEmail(
       order.email,
       emailTemplates.orderConfirmation({
