@@ -20,7 +20,6 @@ import {
   Truck,
 } from "lucide-react";
 import { useCartStore } from "@/store/cart";
-import { FORCE_CATALOG_OUT_OF_STOCK, RESTOCK_MESSAGE } from "@/lib/catalog-status";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select } from "@/components/ui/select";
@@ -199,9 +198,7 @@ export function CheckoutForm() {
             Your cart is empty
           </h2>
           <p className="mt-2 max-w-sm text-sm text-muted-foreground">
-            {FORCE_CATALOG_OUT_OF_STOCK
-              ? "Browse the catalog while we restock, or contact us for availability updates."
-              : "Add items to your cart before checking out."}
+            Add an available item to your cart before checking out.
           </p>
           <div className="mt-6 flex flex-wrap items-center justify-center gap-3">
             <Button
@@ -210,50 +207,6 @@ export function CheckoutForm() {
               onClick={() => router.push("/shop")}
             >
               Browse Catalog
-            </Button>
-            {FORCE_CATALOG_OUT_OF_STOCK && (
-              <Button
-                variant="outline"
-                size="lg"
-                onClick={() => router.push("/contact")}
-              >
-                Contact Support
-              </Button>
-            )}
-          </div>
-        </CardContent>
-      </Card>
-    );
-  }
-
-  if (FORCE_CATALOG_OUT_OF_STOCK) {
-    return (
-      <Card className="border-amber-200/80 bg-gradient-to-br from-amber-50 to-white">
-        <CardContent className="flex flex-col items-center py-16 text-center">
-          <PackageCheck className="h-12 w-12 text-amber-700/70" />
-          <h2 className="mt-4 text-lg font-semibold text-foreground">
-            Checkout is temporarily paused
-          </h2>
-          <p className="mt-2 max-w-md text-sm leading-relaxed text-muted-foreground">
-            {RESTOCK_MESSAGE}
-          </p>
-          <div className="mt-6 flex flex-wrap items-center justify-center gap-3">
-            <Button
-              variant="primary"
-              size="lg"
-              onClick={() => router.push("/shop")}
-            >
-              Browse Catalog
-            </Button>
-            <Button
-              variant="outline"
-              size="lg"
-              onClick={() => {
-                clearCart();
-                router.push("/contact");
-              }}
-            >
-              Clear cart & contact us
             </Button>
           </div>
         </CardContent>

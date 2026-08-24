@@ -38,6 +38,7 @@ function mapDetailVariants(
     sku: v.sku,
     price: v.price,
     inStock: v.inStock,
+    stockQuantity: v.stockQuantity,
     isDefault: v.isDefault,
   }));
 }

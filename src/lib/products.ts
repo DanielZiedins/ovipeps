@@ -1,6 +1,9 @@
 import { db } from "@/lib/db";
 import { FALLBACK_PRODUCTS, FALLBACK_SETTINGS } from "@/lib/fallback-data";
-import { FORCE_CATALOG_OUT_OF_STOCK } from "@/lib/catalog-status";
+import {
+  applyCatalogVariantPolicy,
+  getCatalogProductName,
+} from "@/lib/catalog-status";
 import type { Prisma, ProductCategory } from "@/generated/prisma/client";
 import {
   getLowestPrice,
@@ -9,12 +12,6 @@ import {
   type ProductVariant,
   type SortOption,
 } from "@/types/product";
-
-export { FORCE_CATALOG_OUT_OF_STOCK } from "@/lib/catalog-status";
-
-function applyStockPolicy(inStock: boolean): boolean {
-  return FORCE_CATALOG_OUT_OF_STOCK ? false : inStock;
-}
 
 const productCardInclude = {
   variants: { orderBy: { sortOrder: "asc" as const } },
@@ -57,12 +54,18 @@ const CATEGORY_SLUG_MAP: Record<string, ProductCategory> = {
 };
 
 function mapVariant(variant: ProductWithVariants["variants"][number]): ProductVariant {
+  const catalogVariant = applyCatalogVariantPolicy(
+    variant.sku,
+    variant.price,
+    variant.stockQuantity
+  );
   return {
     id: variant.id,
     name: variant.name,
     sku: variant.sku,
-    price: variant.price,
-    inStock: applyStockPolicy(variant.inStock),
+    price: catalogVariant.price,
+    inStock: catalogVariant.inStock,
+    stockQuantity: catalogVariant.stockQuantity,
     isDefault: variant.isDefault,
   };
 }
@@ -70,7 +73,7 @@ function mapVariant(variant: ProductWithVariants["variants"][number]): ProductVa
 export function getProductCardData(product: ProductWithVariants): ProductCardData {
   return {
     id: product.id,
-    name: product.name,
+    name: getCatalogProductName(product.slug, product.name),
     slug: product.slug,
     imageUrl: product.imageUrl,
     researchCategory: product.researchCategory,
@@ -224,10 +227,10 @@ export async function getProductBySlug(slug: string): Promise<ProductDetail | nu
     if (product) {
       return {
         ...product,
+        name: getCatalogProductName(product.slug, product.name),
         variants: product.variants.map((v) => ({
           ...v,
-          inStock: applyStockPolicy(v.inStock),
-          stockQuantity: applyStockPolicy(v.inStock) ? v.stockQuantity : 0,
+          ...applyCatalogVariantPolicy(v.sku, v.price, v.stockQuantity),
         })),
       };
     }
@@ -240,7 +243,7 @@ export async function getProductBySlug(slug: string): Promise<ProductDetail | nu
 
   return {
     id: fallback.id,
-    name: fallback.name,
+    name: getCatalogProductName(fallback.slug, fallback.name),
     slug: fallback.slug,
     imageUrl: fallback.imageUrl ?? null,
     researchCategory: fallback.researchCategory ?? null,
@@ -260,12 +263,24 @@ export async function getProductBySlug(slug: string): Promise<ProductDetail | nu
       productId: fallback.id,
       name: v.name,
       sku: v.sku,
-      price: v.price,
+      price: applyCatalogVariantPolicy(
+        v.sku,
+        v.price,
+        v.stockQuantity ?? 0
+      ).price,
       compareAtPrice: null,
       concentration: null,
       size: v.name,
-      stockQuantity: applyStockPolicy(v.inStock) ? 100 : 0,
-      inStock: applyStockPolicy(v.inStock),
+      stockQuantity: applyCatalogVariantPolicy(
+        v.sku,
+        v.price,
+        v.stockQuantity ?? 0
+      ).stockQuantity,
+      inStock: applyCatalogVariantPolicy(
+        v.sku,
+        v.price,
+        v.stockQuantity ?? 0
+      ).inStock,
       isDefault: v.isDefault ?? i === 0,
       sortOrder: i,
       createdAt: new Date(),

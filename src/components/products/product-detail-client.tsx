@@ -34,6 +34,7 @@ export function ProductDetailClient({
   }, [variants]);
 
   const inStock = selectedVariant?.inStock ?? false;
+  const stockQuantity = selectedVariant?.stockQuantity ?? 0;
   const hasMultipleVariants = variants.length > 1;
 
   const handleAddToCart = () => {
@@ -46,13 +47,15 @@ export function ProductDetailClient({
       variantName: selectedVariant.name,
       price: selectedVariant.price,
       sku: selectedVariant.sku,
+      stockQuantity: selectedVariant.stockQuantity,
       imageUrl: imageUrl ?? undefined,
       quantity,
     });
   };
 
   const decrementQuantity = () => setQuantity((q) => Math.max(1, q - 1));
-  const incrementQuantity = () => setQuantity((q) => q + 1);
+  const incrementQuantity = () =>
+    setQuantity((q) => Math.min(stockQuantity, q + 1));
 
   return (
     <div className="space-y-6">
@@ -121,7 +124,7 @@ export function ProductDetailClient({
           <button
             type="button"
             onClick={incrementQuantity}
-            disabled={!inStock}
+            disabled={!inStock || quantity >= stockQuantity}
             className="flex h-10 w-10 items-center justify-center text-muted-foreground transition-colors hover:bg-muted/60 hover:text-foreground disabled:opacity-40"
             aria-label="Increase quantity"
           >
@@ -145,7 +148,9 @@ export function ProductDetailClient({
               inStock ? "bg-success" : "bg-amber-600"
             )}
           />
-          {inStock ? "In Stock" : "Temporarily out of stock — restocking"}
+          {inStock
+            ? `Available now — only ${stockQuantity} vials in stock`
+            : "Coming Soon / Out of Stock"}
         </span>
       </div>
 
@@ -156,7 +161,7 @@ export function ProductDetailClient({
         disabled={!inStock || !selectedVariant}
       >
         <ShoppingBag className="h-4 w-4" />
-        {inStock ? "Add to Cart" : "Currently Unavailable"}
+        {inStock ? "Add to Cart" : "Coming Soon / Out of Stock"}
       </Button>
 
       {!inStock && (

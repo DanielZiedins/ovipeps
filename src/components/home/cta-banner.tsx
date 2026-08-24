@@ -7,7 +7,7 @@ import { ScrollReveal } from "@/components/motion/scroll-reveal";
 
 const MARQUEE_ITEMS = [
   "Canadian Fulfillment",
-  "Restocking Soon",
+  "Limited Stock Available",
   "Interac e-Transfer",
   "Research Use Only",
   "Batch Documentation",
@@ -52,15 +52,15 @@ export function CtaBanner() {
             <div className="relative flex flex-col items-center text-center lg:flex-row lg:text-left lg:items-center lg:justify-between gap-8">
               <div>
                 <p className="text-xs font-bold uppercase tracking-widest text-cyan-bright">
-                  Catalog Preview
+                  Available Now
                 </p>
                 <h2 className="mt-2 text-3xl font-bold text-white sm:text-4xl">
                   Premium Research
                   <br />
-                  <span className="gradient-text">Compounds Coming Back</span>
+                  <span className="gradient-text">Limited Stock Release</span>
                 </h2>
                 <p className="mt-3 max-w-md text-base text-white/70">
-                  Browse the catalog while we restock. Contact us for availability updates or procurement questions.
+                  Shop Retatrutide GLP-3 10 mg and MOTS-C 10 mg while quantities last. All other products are coming soon.
                 </p>
               </div>
 

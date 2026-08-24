@@ -13,7 +13,6 @@ import {
   Truck,
   X,
 } from "lucide-react";
-import { FORCE_CATALOG_OUT_OF_STOCK } from "@/lib/catalog-status";
 import { useCartStore } from "@/store/cart";
 import { formatCurrency } from "@/lib/utils";
 
@@ -35,7 +34,7 @@ export function CartDrawer() {
   const total = subtotal();
   const remaining = Math.max(0, FREE_SHIPPING_THRESHOLD - total);
   const progress = Math.min(100, (total / FREE_SHIPPING_THRESHOLD) * 100);
-  const catalogLocked = FORCE_CATALOG_OUT_OF_STOCK;
+  const catalogLocked = false;
 
   useEffect(() => {
     if (!isOpen) return;
@@ -241,8 +240,12 @@ export function CartDrawer() {
                                 onClick={() =>
                                   updateQuantity(item.variantId, item.quantity + 1)
                                 }
+                                disabled={
+                                  item.stockQuantity !== undefined &&
+                                  item.quantity >= item.stockQuantity
+                                }
                                 aria-label={`Increase quantity of ${item.name}`}
-                                className="flex h-7 w-7 items-center justify-center rounded-lg border border-border bg-card transition-colors hover:bg-sky/10"
+                                className="flex h-7 w-7 items-center justify-center rounded-lg border border-border bg-card transition-colors hover:bg-sky/10 disabled:cursor-not-allowed disabled:opacity-40"
                               >
                                 <Plus className="h-3.5 w-3.5" />
                               </button>

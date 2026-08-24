@@ -2,7 +2,6 @@
 
 import { Filter, X } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { FORCE_CATALOG_OUT_OF_STOCK } from "@/lib/catalog-status";
 import {
   DEFAULT_PRODUCT_FILTERS,
   type AvailabilityFilter,
@@ -174,8 +173,7 @@ export function ProductFilters({
         </div>
 
         {/* Availability */}
-        {!FORCE_CATALOG_OUT_OF_STOCK && (
-          <div>
+        <div>
             <p className="mb-2 text-xs font-medium uppercase tracking-wider text-muted-foreground">
               Availability
             </p>
@@ -197,18 +195,7 @@ export function ProductFilters({
                 </label>
               ))}
             </div>
-          </div>
-        )}
-        {FORCE_CATALOG_OUT_OF_STOCK && (
-          <div className="rounded-lg border border-amber-200/80 bg-amber-50 px-3 py-2.5">
-            <p className="text-xs font-bold uppercase tracking-wider text-amber-800">
-              Availability
-            </p>
-            <p className="mt-1 text-xs leading-relaxed text-amber-950/80">
-              All compounds are currently out of stock while we restock.
-            </p>
-          </div>
-        )}
+        </div>
 
         {/* COA */}
         <div>

@@ -64,6 +64,7 @@ export function QuickViewModal({
       variantName: selectedVariant.name,
       price: selectedVariant.price,
       sku: selectedVariant.sku,
+      stockQuantity: selectedVariant.stockQuantity,
       imageUrl: product.imageUrl ?? undefined,
     });
     onClose();
@@ -188,7 +189,9 @@ export function QuickViewModal({
                     inStock ? "bg-success" : "bg-muted-foreground"
                   )}
                 />
-                {inStock ? "In Stock" : "Out of Stock"}
+                {inStock
+                  ? `Available — ${selectedVariant?.stockQuantity ?? "limited"} vials left`
+                  : "Coming Soon / Out of Stock"}
               </span>
             </div>
 
@@ -205,7 +208,7 @@ export function QuickViewModal({
                 )}
               >
                 <ShoppingBag className="h-4 w-4" />
-                {inStock ? "Add to Cart" : "Out of Stock"}
+                {inStock ? "Add to Cart" : "Coming Soon / Out of Stock"}
               </button>
               <Link
                 href={`/shop/${product.slug}`}

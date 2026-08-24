@@ -2,6 +2,7 @@
 
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
+import { getAvailableVariant } from "@/lib/catalog-status";
 
 export interface CartItem {
   productId: string;
@@ -10,6 +11,7 @@ export interface CartItem {
   variantName: string;
   price: number;
   quantity: number;
+  stockQuantity?: number;
   imageUrl?: string;
   sku: string;
 }
@@ -47,7 +49,13 @@ export const useCartStore = create<CartStore>()(
             return {
               items: state.items.map((i) =>
                 i.variantId === item.variantId
-                  ? { ...i, quantity: i.quantity + (item.quantity ?? 1) }
+                  ? {
+                      ...i,
+                      quantity: Math.min(
+                        i.stockQuantity ?? Number.MAX_SAFE_INTEGER,
+                        i.quantity + (item.quantity ?? 1)
+                      ),
+                    }
                   : i
               ),
               isOpen: true,
@@ -71,7 +79,15 @@ export const useCartStore = create<CartStore>()(
             quantity <= 0
               ? state.items.filter((i) => i.variantId !== variantId)
               : state.items.map((i) =>
-                  i.variantId === variantId ? { ...i, quantity } : i
+                  i.variantId === variantId
+                    ? {
+                        ...i,
+                        quantity: Math.min(
+                          i.stockQuantity ?? Number.MAX_SAFE_INTEGER,
+                          quantity
+                        ),
+                      }
+                    : i
                 ),
         })),
 
@@ -88,6 +104,24 @@ export const useCartStore = create<CartStore>()(
       itemCount: () =>
         get().items.reduce((sum, item) => sum + item.quantity, 0),
     }),
-    { name: "ovipeps-cart" }
+    {
+      name: "ovipeps-cart",
+      version: 2,
+      migrate: (persistedState) => {
+        const state = persistedState as Partial<CartStore>;
+        const items = (state.items ?? []).flatMap((item) => {
+          const availableVariant = getAvailableVariant(item.sku);
+          if (!availableVariant) return [];
+          return [{
+            ...item,
+            price: availableVariant.price,
+            quantity: Math.min(item.quantity, availableVariant.stockQuantity),
+            stockQuantity: availableVariant.stockQuantity,
+          }];
+        });
+
+        return { ...state, items } as CartStore;
+      },
+    }
   )
 );

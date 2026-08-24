@@ -44,7 +44,7 @@ export function FeaturedProducts({
           <div>
             <div className="mb-2 inline-flex items-center gap-1.5 rounded-full bg-sky/10 px-3 py-1 text-xs font-bold uppercase tracking-widest text-sky">
               <Sparkles className="h-3 w-3" />
-              Catalog Preview
+              Available Now
             </div>
             <h2 className="text-3xl font-bold tracking-tight text-navy-deep sm:text-4xl">
               {title}
@@ -55,7 +55,7 @@ export function FeaturedProducts({
               </p>
             )}
             <p className="mt-2 text-sm font-medium text-amber-800">
-              Temporarily unavailable — browsing only while we restock.
+              Limited stock: Retatrutide GLP-3 and MOTS-C are ready to order.
             </p>
           </div>
           {viewAllHref && (

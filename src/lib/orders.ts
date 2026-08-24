@@ -1,6 +1,11 @@
 import type { Prisma } from "@/generated/prisma/client";
 import { db } from "@/lib/db";
 import { attributeOrder, createCommission } from "@/lib/affiliate";
+import {
+  applyCatalogVariantPolicy,
+  getAvailableVariant,
+  getCatalogProductName,
+} from "@/lib/catalog-status";
 import { generateOrderNumber } from "@/lib/utils";
 
 export interface ShippingAddress {
@@ -107,18 +112,26 @@ export async function createOrder(input: CreateOrderInput) {
     if (variant.productId !== item.productId) {
       throw new Error("Product and variant mismatch");
     }
-    if (!variant.inStock || variant.stockQuantity < item.quantity) {
+    const catalogVariant = applyCatalogVariantPolicy(
+      variant.sku,
+      variant.price,
+      variant.stockQuantity
+    );
+    if (!catalogVariant.inStock || catalogVariant.stockQuantity < item.quantity) {
       throw new Error(`${variant.product.name} — ${variant.name} is out of stock`);
     }
 
-    const unitPrice = variant.price;
+    const unitPrice = catalogVariant.price;
     const totalPrice = Math.round(unitPrice * item.quantity * 100) / 100;
     subtotal += totalPrice;
 
     return {
       productId: variant.productId,
       variantId: variant.id,
-      productName: variant.product.name,
+      productName: getCatalogProductName(
+        variant.product.slug,
+        variant.product.name
+      ),
       variantName: variant.name,
       sku: variant.sku,
       quantity: item.quantity,
@@ -143,6 +156,35 @@ export async function createOrder(input: CreateOrderInput) {
   const orderNumber = generateOrderNumber();
 
   const order = await db.$transaction(async (tx) => {
+    for (const item of orderItems) {
+      const availableVariant = getAvailableVariant(item.sku);
+      if (!availableVariant) {
+        throw new Error(`${item.productName} — ${item.variantName} is out of stock`);
+      }
+
+      // Bring older database values down to the announced stock cap before
+      // reserving inventory, then decrement atomically inside this transaction.
+      await tx.productVariant.updateMany({
+        where: {
+          id: item.variantId,
+          stockQuantity: { gt: availableVariant.stockQuantity },
+        },
+        data: { stockQuantity: availableVariant.stockQuantity, inStock: true },
+      });
+
+      const reserved = await tx.productVariant.updateMany({
+        where: {
+          id: item.variantId,
+          stockQuantity: { gte: item.quantity },
+        },
+        data: { stockQuantity: { decrement: item.quantity } },
+      });
+
+      if (reserved.count !== 1) {
+        throw new Error(`${item.productName} — ${item.variantName} is out of stock`);
+      }
+    }
+
     const created = await tx.order.create({
       data: {
         orderNumber,

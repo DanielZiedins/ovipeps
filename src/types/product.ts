@@ -4,6 +4,7 @@ export interface ProductVariant {
   sku: string;
   price: number;
   inStock: boolean;
+  stockQuantity?: number;
   isDefault?: boolean;
 }
 
@@ -55,9 +56,11 @@ export function getLowestPrice(variants: ProductVariant[]): number {
 
 export function getDefaultVariant(variants: ProductVariant[]): ProductVariant | undefined {
   if (variants.length === 0) return undefined;
+  const inStockVariants = variants.filter((variant) => variant.inStock);
+  const candidates = inStockVariants.length > 0 ? inStockVariants : variants;
   return (
-    variants.find((v) => v.isDefault) ??
-    variants.reduce((lowest, v) => (v.price < lowest.price ? v : lowest))
+    candidates.find((v) => v.isDefault) ??
+    candidates.reduce((lowest, v) => (v.price < lowest.price ? v : lowest))
   );
 }
 

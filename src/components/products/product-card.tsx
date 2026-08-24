@@ -33,6 +33,7 @@ export function ProductCard({
   const lowestPrice = getLowestPrice(product.variants);
   const defaultVariant = getDefaultVariant(product.variants);
   const inStock = isProductInStock(product.variants);
+  const availableVariant = product.variants.find((variant) => variant.inStock);
   const showCoa = hasCoa ?? product.hasCoa;
   const hasMultipleVariants = product.variants.length > 1;
 
@@ -52,6 +53,7 @@ export function ProductCard({
       variantName: defaultVariant.name,
       price: defaultVariant.price,
       sku: defaultVariant.sku,
+      stockQuantity: defaultVariant.stockQuantity,
       imageUrl: product.imageUrl ?? undefined,
     });
   };
@@ -67,11 +69,12 @@ export function ProductCard({
         "group relative flex flex-col overflow-hidden rounded-2xl border border-border/60 bg-card card-shine",
         "shadow-sm hover:shadow-xl hover:shadow-sky/15 hover:border-sky/30",
         "transition-shadow duration-300",
+        inStock && "border-emerald-400/80 ring-2 ring-emerald-300/30 shadow-lg shadow-emerald-200/40",
         className
       )}
     >
       {/* Gradient top accent */}
-      <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-sky via-cyan to-teal-light opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
+      <div className={cn("absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-sky via-cyan to-teal-light transition-opacity duration-300", inStock ? "opacity-100" : "opacity-0 group-hover:opacity-100")} />
 
       <Link href={`/shop/${product.slug}`} className="flex flex-1 flex-col">
         <div className="relative aspect-square overflow-hidden bg-gradient-to-br from-sky/5 via-transparent to-cyan/5">
@@ -97,6 +100,12 @@ export function ProductCard({
 
           {/* Badges */}
           <div className="absolute left-3 top-3 flex flex-col gap-1.5">
+            {inStock && (
+              <span className="inline-flex items-center gap-1 rounded-full bg-emerald-600 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-white shadow-md">
+                <Zap className="h-3 w-3" />
+                Available Now
+              </span>
+            )}
             {product.isNew && (
               <span className="inline-flex items-center gap-1 rounded-full bg-gradient-to-r from-sky to-cyan px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-white shadow-md">
                 <Sparkles className="h-3 w-3" />
@@ -142,7 +151,7 @@ export function ProductCard({
             >
               <ShoppingBag className="h-3.5 w-3.5" />
               {!inStock
-                ? "Unavailable"
+                ? "Coming Soon"
                 : hasMultipleVariants
                   ? "Choose Options"
                   : "Add to Cart"}
@@ -173,7 +182,9 @@ export function ProductCard({
               )}
             >
               <span className={cn("h-1.5 w-1.5 rounded-full", inStock ? "bg-success animate-pulse" : "bg-muted-foreground")} />
-              {inStock ? "In Stock" : "Unavailable"}
+              {inStock
+                ? `${availableVariant?.stockQuantity ?? "Limited"} Vials Left`
+                : "Coming Soon / Out of Stock"}
             </span>
           </div>
         </div>

@@ -4,7 +4,7 @@ import type { ProductCardData } from "@/types/product";
 export const FALLBACK_PRODUCTS: ProductCardData[] = [
   {
     id: "fb-glp3",
-    name: "GLP-3",
+    name: "Retatrutide GLP-3",
     slug: "glp-3",
     imageUrl: "/images/products/glp-3.png",
     researchCategory: "Metabolic Research",
@@ -14,7 +14,7 @@ export const FALLBACK_PRODUCTS: ProductCardData[] = [
     featured: true,
     variants: [
       { id: "v1", name: "5mg", sku: "GLP3-5MG", price: 149.99, inStock: false, isDefault: true },
-      { id: "v2", name: "10mg", sku: "GLP3-10MG", price: 249.99, inStock: false },
+      { id: "v2", name: "10mg", sku: "GLP3-10MG", price: 80, inStock: true, stockQuantity: 5 },
     ],
   },
   {
@@ -64,7 +64,7 @@ export const FALLBACK_PRODUCTS: ProductCardData[] = [
     isNew: true,
     featured: true,
     variants: [
-      { id: "v8", name: "10mg", sku: "MOTSC-10MG", price: 64.99, inStock: false, isDefault: true },
+      { id: "v8", name: "10mg", sku: "MOTSC-10MG", price: 45, inStock: true, stockQuantity: 10, isDefault: true },
       { id: "v9", name: "40mg", sku: "MOTSC-40MG", price: 189.99, inStock: false },
     ],
   },
@@ -99,7 +99,7 @@ export const FALLBACK_SETTINGS: Record<string, string> = {
 };
 
 export const FALLBACK_ANNOUNCEMENTS = [
-  { id: "a0", message: "Catalog restocking — browse products now, orders reopen soon", link: "/contact", linkText: "Get updates" },
+  { id: "a0", message: "Limited stock now available — Retatrutide GLP-3 and MOTS-C", link: "/shop?availability=in-stock", linkText: "Shop now" },
   { id: "a1", message: "Canadian fulfillment — orders ship from within Canada", link: "/shipping", linkText: "Learn more" },
   { id: "a2", message: "Interac e-Transfer accepted at checkout", link: "/payment-instructions", linkText: "Details" },
   { id: "a3", message: "For research purposes only — see Terms of Service", link: "/terms", linkText: "Terms" },

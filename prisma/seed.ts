@@ -9,7 +9,16 @@ const adapter = new PrismaBetterSqlite3({
 const prisma = new PrismaClient({ adapter });
 
 async function main() {
-  const adminPassword = await bcrypt.hash("admin123", 12);
+  const adminSeedPassword = process.env.SEED_ADMIN_PASSWORD;
+  const demoSeedPassword = process.env.SEED_DEMO_PASSWORD;
+
+  if (!adminSeedPassword || !demoSeedPassword) {
+    throw new Error(
+      "Set SEED_ADMIN_PASSWORD and SEED_DEMO_PASSWORD before running the seed script."
+    );
+  }
+
+  const adminPassword = await bcrypt.hash(adminSeedPassword, 12);
 
   const admin = await prisma.user.upsert({
     where: { email: "admin@ovipeps.ca" },
@@ -23,7 +32,7 @@ async function main() {
     },
   });
 
-  const customerPassword = await bcrypt.hash("demo123", 12);
+  const customerPassword = await bcrypt.hash(demoSeedPassword, 12);
   await prisma.user.upsert({
     where: { email: "demo@ovipeps.ca" },
     update: {},
@@ -38,7 +47,7 @@ async function main() {
 
   const products = [
     {
-      name: "GLP-3",
+      name: "Retatrutide GLP-3",
       slug: "glp-3",
       shortDescription: "Advanced metabolic research compound",
       researchCategory: "Metabolic Research",
@@ -46,8 +55,8 @@ async function main() {
       isNew: true,
       imageUrl: "/images/products/glp-3.png",
       variants: [
-        { name: "5mg", sku: "GLP3-5MG", price: 149.99, concentration: "5mg", size: "5mg", stockQuantity: 50 },
-        { name: "10mg", sku: "GLP3-10MG", price: 249.99, concentration: "10mg", size: "10mg", stockQuantity: 30 },
+        { name: "5mg", sku: "GLP3-5MG", price: 149.99, concentration: "5mg", size: "5mg", stockQuantity: 0 },
+        { name: "10mg", sku: "GLP3-10MG", price: 80, concentration: "10mg", size: "10mg", stockQuantity: 5 },
       ],
     },
     {
@@ -58,7 +67,7 @@ async function main() {
       featured: true,
       imageUrl: "/images/products/klow.png",
       variants: [
-        { name: "80mg", sku: "KLOW-80MG", price: 219.99, concentration: "80mg", size: "80mg", stockQuantity: 25 },
+        { name: "80mg", sku: "KLOW-80MG", price: 219.99, concentration: "80mg", size: "80mg", stockQuantity: 0 },
       ],
     },
     {
@@ -69,8 +78,8 @@ async function main() {
       featured: true,
       imageUrl: "/images/products/5-amino-1mq.png",
       variants: [
-        { name: "5mg", sku: "5AMQ-5MG", price: 84.99, concentration: "5mg", size: "5mg", stockQuantity: 40 },
-        { name: "50mg", sku: "5AMQ-50MG", price: 299.99, concentration: "50mg", size: "50mg", stockQuantity: 20 },
+        { name: "5mg", sku: "5AMQ-5MG", price: 84.99, concentration: "5mg", size: "5mg", stockQuantity: 0 },
+        { name: "50mg", sku: "5AMQ-50MG", price: 299.99, concentration: "50mg", size: "50mg", stockQuantity: 0 },
       ],
     },
     {
@@ -81,7 +90,7 @@ async function main() {
       featured: true,
       imageUrl: "/images/products/glow.png",
       variants: [
-        { name: "10mg", sku: "GLOW-10MG", price: 129.99, concentration: "10mg", size: "10mg", stockQuantity: 35 },
+        { name: "10mg", sku: "GLOW-10MG", price: 129.99, concentration: "10mg", size: "10mg", stockQuantity: 0 },
       ],
     },
     {
@@ -91,7 +100,7 @@ async function main() {
       researchCategory: "Peptide Research",
       imageUrl: "/images/products/kpv.png",
       variants: [
-        { name: "10mg", sku: "KPV-10MG", price: 69.99, concentration: "10mg", size: "10mg", stockQuantity: 45 },
+        { name: "10mg", sku: "KPV-10MG", price: 69.99, concentration: "10mg", size: "10mg", stockQuantity: 0 },
       ],
     },
     {
@@ -103,8 +112,8 @@ async function main() {
       isNew: true,
       imageUrl: "/images/products/mots-c.png",
       variants: [
-        { name: "10mg", sku: "MOTSC-10MG", price: 64.99, concentration: "10mg", size: "10mg", stockQuantity: 50 },
-        { name: "40mg", sku: "MOTSC-40MG", price: 189.99, concentration: "40mg", size: "40mg", stockQuantity: 20 },
+        { name: "10mg", sku: "MOTSC-10MG", price: 45, concentration: "10mg", size: "10mg", stockQuantity: 10 },
+        { name: "40mg", sku: "MOTSC-40MG", price: 189.99, concentration: "40mg", size: "40mg", stockQuantity: 0 },
       ],
     },
     {
@@ -115,7 +124,7 @@ async function main() {
       featured: true,
       imageUrl: "/images/products/bpc157-tb500.png",
       variants: [
-        { name: "10mg/10mg", sku: "WOLV-10-10", price: 179.99, concentration: "10mg/10mg", size: "10mg/10mg", stockQuantity: 30 },
+        { name: "10mg/10mg", sku: "WOLV-10-10", price: 179.99, concentration: "10mg/10mg", size: "10mg/10mg", stockQuantity: 0 },
       ],
     },
     {
@@ -126,7 +135,7 @@ async function main() {
       category: "SUPPLY" as const,
       imageUrl: "/images/products/kpv.png",
       variants: [
-        { name: "30ml", sku: "BAC-30ML", price: 19.99, size: "30ml", stockQuantity: 100 },
+        { name: "30ml", sku: "BAC-30ML", price: 19.99, size: "30ml", stockQuantity: 0 },
       ],
     },
   ];
@@ -360,7 +369,7 @@ Our [Peptide Calculator](/calculator) helps researchers calculate concentrations
     await prisma.faqItem.create({ data: { ...faqs[i], sortOrder: i, published: true } });
   }
 
-  console.log("Seed completed. Admin:", admin.email, "/ admin123");
+  console.log("Seed completed. Admin account:", admin.email);
 }
 
 main()
