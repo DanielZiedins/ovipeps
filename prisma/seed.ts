@@ -105,15 +105,39 @@ async function main() {
     },
     {
       name: "CJC/Ipamorelin",
-      slug: "mots-c",
+      slug: "cjc-ipamorelin",
       shortDescription: "CJC and Ipamorelin laboratory blend",
       researchCategory: "Peptide Blend",
       featured: true,
       isNew: true,
       imageUrl: "/images/products/cjc-ipamorelin.jpg",
       variants: [
-        { name: "10mg", sku: "MOTSC-10MG", price: 80, concentration: "10mg", size: "10mg", stockQuantity: 4 },
-        { name: "40mg", sku: "MOTSC-40MG", price: 189.99, concentration: "40mg", size: "40mg", stockQuantity: 0 },
+        { name: "10mg", sku: "CJCIPA-10MG", price: 80, concentration: "10mg", size: "10mg", stockQuantity: 4 },
+        { name: "40mg", sku: "CJCIPA-40MG", price: 189.99, concentration: "40mg", size: "40mg", stockQuantity: 0 },
+      ],
+    },
+    {
+      name: "GHK-Cu",
+      slug: "ghk-cu",
+      shortDescription: "Copper peptide research compound",
+      researchCategory: "Peptide Research",
+      featured: true,
+      isNew: true,
+      imageUrl: "/images/products/ghk-cu.jpg",
+      variants: [
+        { name: "50mg", sku: "GHKCU-50MG", price: 50, concentration: "50mg", size: "50mg", stockQuantity: 8 },
+      ],
+    },
+    {
+      name: "MOTS-C",
+      slug: "mots-c",
+      shortDescription: "Mitochondrial peptide research compound",
+      researchCategory: "Metabolic Research",
+      featured: true,
+      isNew: true,
+      imageUrl: "/images/products/mots-c.jpg",
+      variants: [
+        { name: "10mg", sku: "MOTSC-10MG", price: 45, concentration: "10mg", size: "10mg", stockQuantity: 10 },
       ],
     },
     {
