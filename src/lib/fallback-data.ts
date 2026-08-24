@@ -58,14 +58,36 @@ export const FALLBACK_PRODUCTS: ProductCardData[] = [
   {
     id: "fb-cjcipa",
     name: "CJC/Ipamorelin",
-    slug: "mots-c",
+    slug: "cjc-ipamorelin",
     imageUrl: "/images/products/cjc-ipamorelin.jpg",
     researchCategory: "Peptide Blend",
     isNew: true,
     featured: true,
     variants: [
-      { id: "v8", name: "10mg", sku: "MOTSC-10MG", price: 80, inStock: true, stockQuantity: 4, isDefault: true },
+      { id: "v8", name: "10mg", sku: "CJCIPA-10MG", price: 80, inStock: true, stockQuantity: 4, isDefault: true },
     ],
+  },
+  {
+    id: "fb-ghkcu",
+    name: "GHK-Cu",
+    slug: "ghk-cu",
+    imageUrl: "/images/products/ghk-cu.jpg",
+    researchCategory: "Peptide Research",
+    shortDescription: "Copper peptide research compound",
+    isNew: true,
+    featured: true,
+    variants: [{ id: "v-ghkcu-50", name: "50mg", sku: "GHKCU-50MG", price: 50, inStock: true, stockQuantity: 8, isDefault: true }],
+  },
+  {
+    id: "fb-motsc",
+    name: "MOTS-C",
+    slug: "mots-c",
+    imageUrl: "/images/products/mots-c.jpg",
+    researchCategory: "Metabolic Research",
+    shortDescription: "Mitochondrial peptide research compound",
+    isNew: true,
+    featured: true,
+    variants: [{ id: "v-motsc-10", name: "10mg", sku: "MOTSC-10MG", price: 45, inStock: true, stockQuantity: 10, isDefault: true }],
   },
   {
     id: "fb-wolv",
@@ -98,7 +120,7 @@ export const FALLBACK_SETTINGS: Record<string, string> = {
 };
 
 export const FALLBACK_ANNOUNCEMENTS = [
-  { id: "a0", message: "Limited stock now available — Retatrutide (GLP-3) and CJC/Ipamorelin", link: "/shop?availability=in-stock", linkText: "Shop now" },
+  { id: "a0", message: "Available now — Retatrutide, CJC/Ipamorelin, GHK-Cu, and MOTS-C", link: "/shop?availability=in-stock", linkText: "Shop now" },
   { id: "a1", message: "Canadian fulfillment — orders ship from within Canada", link: "/shipping", linkText: "Learn more" },
   { id: "a2", message: "Interac e-Transfer accepted at checkout", link: "/payment-instructions", linkText: "Details" },
   { id: "a3", message: "For research purposes only — see Terms of Service", link: "/terms", linkText: "Terms" },
