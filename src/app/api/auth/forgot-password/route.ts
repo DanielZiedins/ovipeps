@@ -16,7 +16,22 @@ export async function POST(request: Request) {
   if (user?.passwordHash) {
     const token = createPasswordResetToken(email, user.passwordHash);
     const baseUrl = process.env.NEXT_PUBLIC_SITE_URL ?? new URL(request.url).origin;
-    await sendEmail(email, emailTemplates.passwordReset({ name: user.firstName ?? "there", resetUrl: `${baseUrl}/account/reset-password?token=${encodeURIComponent(token)}` }));
+    const result = await sendEmail(
+      email,
+      emailTemplates.passwordReset({
+        name: user.firstName ?? "there",
+        resetUrl: `${baseUrl}/account/reset-password?token=${encodeURIComponent(token)}`,
+      })
+    );
+    if (!result.success) {
+      return NextResponse.json(
+        {
+          error:
+            "We could not send the reset email. The website email sender still needs to be connected.",
+        },
+        { status: 503 }
+      );
+    }
   }
   return NextResponse.json({ success: true });
 }

@@ -2,7 +2,11 @@ import NextAuth from "next-auth";
 import Credentials from "next-auth/providers/credentials";
 import bcrypt from "bcryptjs";
 import { db } from "./db";
-import { getOrMigrateOwnerAdmin, OWNER_EMAIL } from "./owner-account";
+import {
+  activateOwnerAdmin,
+  getOrMigrateOwnerAdmin,
+  OWNER_EMAIL,
+} from "./owner-account";
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
   providers: [
@@ -29,11 +33,16 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
 
         if (!valid) return null;
 
+        const authenticatedUser =
+          email === OWNER_EMAIL && user.role !== "ADMIN"
+            ? await activateOwnerAdmin(user.id)
+            : user;
+
         return {
-          id: user.id,
-          email: user.email,
-          name: `${user.firstName ?? ""} ${user.lastName ?? ""}`.trim(),
-          role: user.role,
+          id: authenticatedUser.id,
+          email: authenticatedUser.email,
+          name: `${authenticatedUser.firstName ?? ""} ${authenticatedUser.lastName ?? ""}`.trim(),
+          role: authenticatedUser.role,
         };
       },
     }),

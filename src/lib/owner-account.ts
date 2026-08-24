@@ -12,22 +12,7 @@ export async function getOrMigrateOwnerAdmin() {
     where: { email: OWNER_EMAIL },
   });
 
-  if (owner) {
-    await db.user.updateMany({
-      where: {
-        email: LEGACY_ADMIN_EMAIL,
-        role: "ADMIN",
-      },
-      data: { role: "CUSTOMER" },
-    });
-
-    return owner.role === "ADMIN"
-      ? owner
-      : db.user.update({
-          where: { id: owner.id },
-          data: { role: "ADMIN" },
-        });
-  }
+  if (owner) return owner;
 
   const legacyAdmin = await db.user.findUnique({
     where: { email: LEGACY_ADMIN_EMAIL },
@@ -41,5 +26,23 @@ export async function getOrMigrateOwnerAdmin() {
       email: OWNER_EMAIL,
       role: "ADMIN",
     },
+  });
+}
+
+/** Promote the verified owner login and retire the placeholder admin identity. */
+export async function activateOwnerAdmin(userId: string) {
+  return db.$transaction(async (tx) => {
+    await tx.user.updateMany({
+      where: {
+        email: LEGACY_ADMIN_EMAIL,
+        role: "ADMIN",
+      },
+      data: { role: "CUSTOMER" },
+    });
+
+    return tx.user.update({
+      where: { id: userId },
+      data: { role: "ADMIN" },
+    });
   });
 }

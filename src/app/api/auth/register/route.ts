@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
 import { z } from "zod";
 import { db } from "@/lib/db";
+import { getOrMigrateOwnerAdmin, OWNER_EMAIL } from "@/lib/owner-account";
 
 const registerSchema = z.object({
   firstName: z.string().min(1, "First name is required"),
@@ -24,6 +25,18 @@ export async function POST(request: Request) {
 
     const { firstName, lastName, email, password } = parsed.data;
     const normalizedEmail = email.trim().toLowerCase();
+
+    if (normalizedEmail === OWNER_EMAIL) {
+      await getOrMigrateOwnerAdmin();
+      return NextResponse.json(
+        {
+          code: "OWNER_ACCOUNT_EXISTS",
+          error:
+            "Your administrator account already exists. Use Forgot your password to set or reset its password.",
+        },
+        { status: 400 }
+      );
+    }
 
     const existing = await db.user.findUnique({
       where: { email: normalizedEmail },

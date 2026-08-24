@@ -28,6 +28,7 @@ type RegisterFormData = z.infer<typeof registerSchema>;
 export function RegisterForm() {
   const router = useRouter();
   const [error, setError] = useState("");
+  const [showOwnerReset, setShowOwnerReset] = useState(false);
 
   const {
     register,
@@ -39,6 +40,7 @@ export function RegisterForm() {
 
   async function onSubmit(data: RegisterFormData) {
     setError("");
+    setShowOwnerReset(false);
 
     try {
       const response = await fetch("/api/auth/register", {
@@ -55,6 +57,9 @@ export function RegisterForm() {
       const body = await response.json().catch(() => null);
 
       if (!response.ok) {
+        if (body?.code === "OWNER_ACCOUNT_EXISTS") {
+          setShowOwnerReset(true);
+        }
         throw new Error(body?.error ?? "Unable to create account. Please try again.");
       }
 
@@ -111,9 +116,17 @@ export function RegisterForm() {
       />
 
       {error ? (
-        <p className="rounded-md border border-error/20 bg-error/5 px-3 py-2 text-sm text-error">
-          {error}
-        </p>
+        <div className="rounded-md border border-error/20 bg-error/5 px-3 py-2 text-sm text-error">
+          <p>{error}</p>
+          {showOwnerReset ? (
+            <Link
+              href="/account/forgot-password"
+              className="mt-2 inline-block font-semibold underline underline-offset-2"
+            >
+              Reset the administrator password
+            </Link>
+          ) : null}
+        </div>
       ) : null}
 
       <Button type="submit" size="lg" className="w-full" disabled={isSubmitting}>
