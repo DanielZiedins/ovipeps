@@ -3,11 +3,12 @@ import { Clock, Mail, MapPin } from "lucide-react";
 import { PageHero } from "@/components/content/page-hero";
 import { Breadcrumb } from "@/components/content/breadcrumb";
 import { ContactForm } from "@/components/contact/contact-form";
+import Link from "next/link";
 
 export const metadata: Metadata = {
   title: "Contact Us",
   description:
-    "Get in touch with OVIPeps support for order inquiries, documentation requests, and research product questions.",
+    "Get in touch with OVIpeps support for order inquiries, documentation requests, and research product questions.",
 };
 
 export default function ContactPage() {
@@ -16,7 +17,7 @@ export default function ContactPage() {
       <PageHero
         eyebrow="Support"
         title="Contact Us"
-        description="Our Canadian support team is here to help with orders, payments, shipping, and research documentation inquiries."
+        description="For research-use-only products. OVIpeps does not provide medical advice. Include your order number if your inquiry relates to an existing purchase."
       />
 
       <div className="mx-auto max-w-7xl px-4 py-12 lg:px-6 lg:py-16">
@@ -47,10 +48,10 @@ export default function ContactPage() {
                 <div>
                   <p className="text-sm font-medium text-foreground">Email</p>
                   <a
-                    href="mailto:support@ovipeps.ca"
+                    href="mailto:ovipeps@gmail.com"
                     className="mt-0.5 text-sm text-accent hover:text-navy"
                   >
-                    support@ovipeps.ca
+                    ovipeps@gmail.com
                   </a>
                 </div>
               </div>
@@ -86,17 +87,17 @@ export default function ContactPage() {
               <p className="font-medium text-navy-deep">Before you write</p>
               <p className="mt-2">
                 Check our{" "}
-                <a href="/research/faq" className="text-accent hover:text-navy">
+                <Link href="/research/faq" className="text-accent hover:text-navy">
                   FAQ
-                </a>{" "}
+                </Link>{" "}
                 for quick answers on payments, shipping, and COA access. For payment
                 details, see{" "}
-                <a
+                <Link
                   href="/payment-instructions"
                   className="text-accent hover:text-navy"
                 >
                   payment instructions
-                </a>
+                </Link>
                 .
               </p>
             </div>

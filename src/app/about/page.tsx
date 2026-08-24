@@ -14,7 +14,7 @@ import { SITE_NAME } from "@/lib/content";
 export const metadata: Metadata = {
   title: "About Us",
   description:
-    "Learn about OVIPeps — a Canadian research peptide brand built on transparency, batch documentation, and responsive support for qualified laboratories.",
+    "Learn about OVIpeps — a Canadian research peptide brand built on transparency, batch documentation, and responsive support for qualified laboratories.",
 };
 
 const values = [
@@ -22,7 +22,7 @@ const values = [
     icon: MapPin,
     title: "Canadian roots",
     description:
-      "Founded to serve researchers across Canada with domestic fulfillment, local support, and clear communication in CAD.",
+      "Founded to serve Canada with domestic fulfillment, local support, and clear communication in CAD.",
   },
   {
     icon: FileCheck,
@@ -50,7 +50,7 @@ export default function AboutPage() {
       <PageHero
         eyebrow="Our story"
         title={`About ${SITE_NAME}`}
-        description="A Canadian research supply brand built for laboratories that value documentation, transparency, and dependable fulfillment."
+        description="A Canadian research supply brand that values documentation, transparency, and dependable fulfillment."
       />
 
       <div className="mx-auto max-w-7xl px-4 py-12 lg:px-6 lg:py-16">
@@ -65,12 +65,11 @@ export default function AboutPage() {
         <div className="grid gap-12 lg:grid-cols-2 lg:gap-16">
           <div>
             <h2 className="text-2xl font-semibold text-navy-deep">
-              Built for Canadian researchers
+              Built for Canada
             </h2>
             <div className="prose-ovipeps mt-6">
               <p>
-                OVIPeps was founded with a straightforward mission: provide qualified
-                laboratories and research professionals in Canada with access to
+                OVIpeps was founded with a straightforward mission: provide Canadians with access to
                 research-grade peptides backed by clear documentation, honest product
                 communication, and responsive domestic support.
               </p>
@@ -83,9 +82,9 @@ export default function AboutPage() {
               </p>
               <p>
                 From our fulfillment operations in Canada to our Interac e-Transfer
-                checkout designed for domestic buyers, every aspect of OVIPeps is
+                checkout designed for domestic buyers, every aspect of OVIpeps is
                 shaped by the needs of Canadian research institutions, independent
-                labs, and qualified procurement teams.
+                labs, and qualified procurement.
               </p>
             </div>
           </div>
@@ -97,7 +96,7 @@ export default function AboutPage() {
               What we believe
             </h3>
             <p className="relative mt-3 leading-relaxed text-muted-foreground">
-              Research procurement should be straightforward. Researchers deserve
+              Procurement should be straightforward. Researchers deserve
               suppliers who communicate clearly, document thoroughly, and respect the
               serious nature of laboratory work. That is the standard we hold ourselves
               to — every order, every batch, every conversation.

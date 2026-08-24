@@ -1,4 +1,5 @@
 import { db } from "@/lib/db";
+import { emailTemplates, sendEmail } from "@/lib/emails";
 
 const PAID_STATUSES = [
   "PAYMENT_RECEIVED",
@@ -126,6 +127,8 @@ export async function approveAffiliateApplication(
     attempts++;
   }
 
+  const commissionRate = Number(defaultCommission?.value ?? 15);
+
   await db.$transaction(async (tx) => {
     await tx.affiliateApplication.update({
       where: { id: applicationId },
@@ -146,11 +149,24 @@ export async function approveAffiliateApplication(
       data: {
         userId: userId!,
         code,
-        commissionRate: Number(defaultCommission?.value ?? 10),
+        commissionRate,
         status: "ACTIVE",
       },
     });
   });
+
+  try {
+    await sendEmail(
+      application.email,
+      emailTemplates.affiliateApproved({
+        name: application.name,
+        code,
+        commissionRate,
+      })
+    );
+  } catch (error) {
+    console.error("Affiliate approval email failed", error);
+  }
 
   return { code };
 }

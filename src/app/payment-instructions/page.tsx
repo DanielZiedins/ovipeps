@@ -3,31 +3,20 @@ import Link from "next/link";
 import { PageHero } from "@/components/content/page-hero";
 import { Breadcrumb } from "@/components/content/breadcrumb";
 import { LegalSectionList } from "@/components/content/legal-section";
-import { getSiteSetting } from "@/lib/products";
 
 export const metadata: Metadata = {
   title: "Payment Instructions",
   description:
-    "How to pay for your OVIPeps order using Interac e-Transfer — step-by-step instructions for Canadian research customers.",
+    "How to pay for your OVIpeps order using Interac e-Transfer — step-by-step instructions for Canadian research customers.",
 };
 
-export default async function PaymentInstructionsPage() {
-  const [configuredEmail, configuredInstructions] = await Promise.all([
-    getSiteSetting("etransfer_email"),
-    getSiteSetting("etransfer_instructions"),
-  ]);
-  const etransferEmail =
-    configuredEmail ?? "orders@ovipeps.ca";
-  const instructions =
-    configuredInstructions ??
-    `Please send your Interac e-Transfer to ${etransferEmail}. Include your order number in the message field.`;
-
+export default function PaymentInstructionsPage() {
   return (
     <>
       <PageHero
         eyebrow="Checkout"
         title="Payment Instructions"
-        description="OVIPeps accepts Interac e-Transfer for Canadian orders. Follow these steps after placing your order."
+        description="OVIpeps accepts Interac e-Transfer for Canadian orders. Follow these steps after placing your order."
       />
 
       <div className="mx-auto max-w-3xl px-4 py-10 lg:px-6 lg:py-14">
@@ -43,11 +32,8 @@ export default async function PaymentInstructionsPage() {
           <p className="text-sm font-semibold uppercase tracking-wide text-teal">
             Interac e-Transfer
           </p>
-          <p className="mt-2 text-2xl font-semibold text-navy-deep">
-            {etransferEmail}
-          </p>
-          <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
-            {instructions}
+          <p className="mt-2 text-lg font-semibold text-navy-deep">
+            The verified payment address is provided privately in your official order confirmation email.
           </p>
         </div>
 
@@ -66,11 +52,10 @@ export default async function PaymentInstructionsPage() {
                       Log in to your Canadian bank&apos;s online banking or mobile app
                     </li>
                     <li>
-                      Send an Interac e-Transfer to{" "}
-                      <strong>{etransferEmail}</strong>
+                      Send an Interac e-Transfer to the email address provided in your official order confirmation
                     </li>
                     <li>
-                      Enter your <strong>order number</strong> in the message or memo
+                      Enter <strong>ONLY your order number</strong> in the message or memo
                       field — this is required to match your payment
                     </li>
                     <li>
@@ -107,11 +92,14 @@ export default async function PaymentInstructionsPage() {
               content: (
                 <>
                   <p>
-                    Never send payment to an email address other than the one shown on
-                    this page or in your official OVIPeps order confirmation. If you
+                    Never send payment to an email address other than the one sent in
+                    your official OVIpeps order confirmation. If you
                     receive suspicious payment instructions, contact{" "}
-                    <a href="mailto:support@ovipeps.ca">support@ovipeps.ca</a> before
+                    <a href="mailto:ovipeps@gmail.com">ovipeps@gmail.com</a> before
                     sending funds.
+                  </p>
+                  <p>
+                    Before sending, confirm that AutoDeposit displays the name <strong>IN Z</strong>.
                   </p>
                 </>
               ),

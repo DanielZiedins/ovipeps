@@ -70,7 +70,7 @@ const organizationSchema = {
     "Canadian supplier of research-grade peptides and laboratory supplies for qualified research professionals.",
   contactPoint: {
     "@type": "ContactPoint",
-    email: "support@ovipeps.ca",
+    email: "ovipeps@gmail.com",
     contactType: "customer support",
     areaServed: "CA",
     availableLanguage: "English",

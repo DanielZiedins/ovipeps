@@ -8,7 +8,7 @@ import { SITE_NAME } from "@/lib/content";
 export const metadata: Metadata = {
   title: "Privacy Policy",
   description:
-    "How OVIPeps collects, uses, and protects your personal information when you browse, order, or contact us.",
+    "How OVIpeps collects, uses, and protects your personal information when you browse, order, or contact us.",
 };
 
 export default function PrivacyPage() {
@@ -41,7 +41,7 @@ export default function PrivacyPage() {
               content: (
                 <>
                   <p>
-                    This Privacy Policy describes how OVIPeps (&quot;we,&quot;
+                    This Privacy Policy describes how OVIpeps (&quot;we,&quot;
                     &quot;us,&quot; or &quot;our&quot;) collects, uses, discloses, and
                     safeguards personal information when you visit ovipeps.ca, create an
                     account, place an order, or communicate with us.
@@ -186,7 +186,7 @@ export default function PrivacyPage() {
                   </p>
                   <p>
                     To exercise these rights, contact{" "}
-                    <a href="mailto:support@ovipeps.ca">support@ovipeps.ca</a>. We will
+                    <a href="mailto:ovipeps@gmail.com">ovipeps@gmail.com</a>. We will
                     respond within a reasonable timeframe.
                   </p>
                 </>
@@ -199,7 +199,7 @@ export default function PrivacyPage() {
                 <>
                   <p>
                     For privacy-related questions or requests, email{" "}
-                    <a href="mailto:support@ovipeps.ca">support@ovipeps.ca</a> or use
+                    <a href="mailto:ovipeps@gmail.com">ovipeps@gmail.com</a> or use
                     our{" "}
                     <Link href="/contact">contact form</Link>.
                   </p>

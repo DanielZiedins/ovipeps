@@ -7,6 +7,9 @@ const applySchema = z.object({
   name: z.string().min(2),
   email: z.string().email(),
   socialChannel: z.string().optional(),
+  socialChannel2: z.string().optional(),
+  socialChannel3: z.string().optional(),
+  socialChannel4: z.string().optional(),
   website: z.string().url().optional().or(z.literal("")),
   audienceSize: z.string().optional(),
   primaryPlatform: z.string().optional(),
@@ -56,7 +59,8 @@ export async function POST(request: Request) {
         userId: session?.user?.id,
         name: data.name.trim(),
         email: data.email.trim().toLowerCase(),
-        socialChannel: data.socialChannel?.trim() || undefined,
+        socialChannel: [data.socialChannel, data.socialChannel2, data.socialChannel3, data.socialChannel4]
+          .map((value) => value?.trim()).filter(Boolean).join(" | ") || undefined,
         website: data.website?.trim() || undefined,
         audienceSize: data.audienceSize?.trim() || undefined,
         primaryPlatform: data.primaryPlatform?.trim() || undefined,
@@ -65,7 +69,14 @@ export async function POST(request: Request) {
     });
 
     return NextResponse.json({ success: true, id: application.id });
-  } catch {
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      return NextResponse.json(
+        { error: error.issues[0]?.message ?? "Please check the highlighted details." },
+        { status: 400 }
+      );
+    }
+    console.error("Affiliate application failed", error);
     return NextResponse.json(
       { error: "Invalid submission. Please check your details and try again." },
       { status: 400 }

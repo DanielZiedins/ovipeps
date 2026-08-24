@@ -75,7 +75,7 @@ export function getProductCardData(product: ProductWithVariants): ProductCardDat
     id: product.id,
     name: getCatalogProductName(product.slug, product.name),
     slug: product.slug,
-    imageUrl: product.imageUrl,
+    imageUrl: product.slug === "mots-c" ? null : product.imageUrl,
     researchCategory: product.researchCategory,
     shortDescription: product.shortDescription,
     hasCoa: product.coaDocuments.length > 0,
@@ -228,6 +228,7 @@ export async function getProductBySlug(slug: string): Promise<ProductDetail | nu
       return {
         ...product,
         name: getCatalogProductName(product.slug, product.name),
+        imageUrl: product.slug === "mots-c" ? null : product.imageUrl,
         variants: product.variants.map((v) => ({
           ...v,
           ...applyCatalogVariantPolicy(v.sku, v.price, v.stockQuantity),

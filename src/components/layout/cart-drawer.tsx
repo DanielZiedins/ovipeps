@@ -16,8 +16,6 @@ import {
 import { useCartStore } from "@/store/cart";
 import { formatCurrency } from "@/lib/utils";
 
-const FREE_SHIPPING_THRESHOLD = 300;
-
 export function CartDrawer() {
   const {
     items,
@@ -32,8 +30,6 @@ export function CartDrawer() {
 
   const count = itemCount();
   const total = subtotal();
-  const remaining = Math.max(0, FREE_SHIPPING_THRESHOLD - total);
-  const progress = Math.min(100, (total / FREE_SHIPPING_THRESHOLD) * 100);
   const catalogLocked = false;
 
   useEffect(() => {
@@ -115,24 +111,7 @@ export function CartDrawer() {
               <div className="border-b border-border px-5 py-3">
                 <div className="flex items-center gap-2 text-xs">
                   <Truck className="h-3.5 w-3.5 text-sky" />
-                  {remaining > 0 ? (
-                    <span className="text-muted-foreground">
-                      Add <strong className="text-sky">{formatCurrency(remaining)}</strong> for
-                      free shipping
-                    </span>
-                  ) : (
-                    <span className="font-semibold text-success">
-                      You qualify for free shipping
-                    </span>
-                  )}
-                </div>
-                <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-muted">
-                  <motion.div
-                    className="h-full rounded-full bg-gradient-to-r from-sky to-cyan"
-                    initial={{ width: 0 }}
-                    animate={{ width: `${progress}%` }}
-                    transition={{ duration: 0.5 }}
-                  />
+                  <span className="font-semibold text-sky">$25 CAD flat-rate shipping across Canada</span>
                 </div>
               </div>
             )}
@@ -253,7 +232,7 @@ export function CartDrawer() {
                           )}
                           {catalogLocked && (
                             <p className="mt-2 text-xs font-medium text-amber-800">
-                              Qty {item.quantity} · currently unavailable
+                              Qty {item.quantity} · currently restocking
                             </p>
                           )}
                         </div>

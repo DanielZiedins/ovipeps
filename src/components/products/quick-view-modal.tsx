@@ -191,7 +191,7 @@ export function QuickViewModal({
                 />
                 {inStock
                   ? `Available — ${selectedVariant?.stockQuantity ?? "limited"} vials left`
-                  : "Coming Soon / Out of Stock"}
+                  : "Restocking / Coming Soon"}
               </span>
             </div>
 
@@ -208,7 +208,7 @@ export function QuickViewModal({
                 )}
               >
                 <ShoppingBag className="h-4 w-4" />
-                {inStock ? "Add to Cart" : "Coming Soon / Out of Stock"}
+                {inStock ? "Add to Cart" : "Restocking / Coming Soon"}
               </button>
               <Link
                 href={`/shop/${product.slug}`}

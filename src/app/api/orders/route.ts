@@ -46,7 +46,7 @@ export async function POST(request: Request) {
 
     if (!body.termsAccepted && !body.researchUseAccepted) {
       return NextResponse.json(
-        { error: "Please agree to the Terms of Service to continue" },
+        { error: "Please agree to the Terms, Privacy Policy, and Disclaimer to continue" },
         { status: 400 }
       );
     }

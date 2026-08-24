@@ -337,7 +337,17 @@ export function PeptideCalculator() {
         </Card>
         <div className="rounded-xl border border-burgundy/20 bg-burgundy/5 px-5 py-4">
           <p className="text-sm font-semibold text-burgundy">Research use only</p>
-          <p className="mt-2 text-sm leading-relaxed text-muted-foreground">This calculator performs unit conversion using the values you enter. It does not provide medical advice, dosing recommendations, treatment schedules, or administration instructions. Independently verify all inputs and results with a qualified professional.</p>
+          <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
+            This calculator performs unit conversion using the values you enter. It
+            does not provide medical advice, dosing recommendations, treatment
+            schedules, or administration instructions. Independently verify all inputs
+            and results with a qualified professional. OVIpeps products are intended
+            for qualified laboratory research only. For
+            another laboratory calculation tool, visit{" "}
+            <a href="https://thepeptidelabs.ca/dosage-calculator/" target="_blank" rel="noopener noreferrer" className="font-semibold text-sky hover:underline">
+              The Peptide Labs calculator
+            </a>.
+          </p>
         </div>
       </div>
     </div>

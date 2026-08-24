@@ -8,7 +8,7 @@ import { auth } from "@/lib/auth";
 export const metadata: Metadata = {
   title: "Apply — Partner Program",
   description:
-    "Apply to join the OVIPeps Partner Program and earn commission on referred research orders.",
+    "Apply to join the OVIpeps Partner Program and earn commission on referred research orders.",
 };
 
 export default async function AffiliateApplyPage() {
@@ -45,12 +45,16 @@ export default async function AffiliateApplyPage() {
             </Link>
             .
           </p>
-          <div className="mt-6">
-            <AffiliateApplyForm
-              defaultName={defaultName}
-              defaultEmail={defaultEmail}
-            />
-          </div>
+          {session?.user ? (
+            <div className="mt-6">
+              <AffiliateApplyForm defaultName={defaultName} defaultEmail={defaultEmail} />
+            </div>
+          ) : (
+            <div className="mt-6 rounded-xl border border-sky/20 bg-sky/5 p-6">
+              <p className="text-sm leading-relaxed text-muted-foreground">Create or sign in to your OVIpeps account before applying. Your approved partner dashboard uses this same login—no temporary password is sent.</p>
+              <div className="mt-4 flex gap-3"><Link href="/account/register?callbackUrl=/affiliates/apply" className="rounded-lg bg-navy px-4 py-2 text-sm font-semibold text-white">Create account</Link><Link href="/account/login?callbackUrl=/affiliates/apply" className="rounded-lg border border-border bg-white px-4 py-2 text-sm font-semibold">Sign in</Link></div>
+            </div>
+          )}
         </div>
       </div>
     </>

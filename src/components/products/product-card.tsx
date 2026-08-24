@@ -160,11 +160,6 @@ export function ProductCard({
         </div>
 
         <div className="flex flex-1 flex-col gap-2 p-4">
-          {product.researchCategory && (
-            <p className="text-[11px] font-bold uppercase tracking-widest text-cyan">
-              {product.researchCategory}
-            </p>
-          )}
           <h3 className="text-base font-bold leading-snug text-foreground transition-colors group-hover:text-sky">
             {product.name}
           </h3>
@@ -184,7 +179,7 @@ export function ProductCard({
               <span className={cn("h-1.5 w-1.5 rounded-full", inStock ? "bg-success animate-pulse" : "bg-muted-foreground")} />
               {inStock
                 ? `${availableVariant?.stockQuantity ?? "Limited"} Vials Left`
-                : "Coming Soon / Out of Stock"}
+                : "Restocking / Coming Soon"}
             </span>
           </div>
         </div>

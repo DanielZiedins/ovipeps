@@ -1,0 +1,18 @@
+import { NextResponse } from "next/server";
+import { z } from "zod";
+import { db } from "@/lib/db";
+import { createPasswordResetToken } from "@/lib/password-reset";
+import { emailTemplates, sendEmail } from "@/lib/emails";
+
+export async function POST(request: Request) {
+  const parsed = z.object({ email: z.string().email() }).safeParse(await request.json().catch(() => null));
+  if (!parsed.success) return NextResponse.json({ error: "Enter a valid email address" }, { status: 400 });
+  const email = parsed.data.email.toLowerCase();
+  const user = await db.user.findUnique({ where: { email } });
+  if (user?.passwordHash) {
+    const token = createPasswordResetToken(email, user.passwordHash);
+    const baseUrl = process.env.NEXT_PUBLIC_SITE_URL ?? new URL(request.url).origin;
+    await sendEmail(email, emailTemplates.passwordReset({ name: user.firstName ?? "there", resetUrl: `${baseUrl}/account/reset-password?token=${encodeURIComponent(token)}` }));
+  }
+  return NextResponse.json({ success: true });
+}

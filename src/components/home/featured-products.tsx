@@ -55,7 +55,7 @@ export function FeaturedProducts({
               </p>
             )}
             <p className="mt-2 text-sm font-medium text-amber-800">
-              Limited stock: Retatrutide GLP-3 and MOTS-C are ready to order.
+              Limited stock: Retatrutide (GLP-3) and CJC/Ipamorelin are ready to order.
             </p>
           </div>
           {viewAllHref && (

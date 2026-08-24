@@ -50,11 +50,11 @@ export async function generateMetadata({
   const product = await getProductBySlug(slug);
 
   if (!product) {
-    return { title: "Product Not Found | OVIPeps" };
+    return { title: "Product Not Found | OVIpeps" };
   }
 
   return {
-    title: product.metaTitle ?? `${product.name} | OVIPeps`,
+    title: product.metaTitle ?? `${product.name} | OVIpeps`,
     description:
       product.metaDescription ??
       product.shortDescription ??
@@ -86,7 +86,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
   const lowestPrice = getLowestPrice(variants);
   const disclaimer =
     researchDisclaimer ??
-    "All products are sold for research purposes only. Not for human consumption.";
+    "All products are sold for research purposes only. Not intended for human consumption.";
 
   const jsonLd = {
     "@context": "https://schema.org",
@@ -97,7 +97,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
     sku: product.variants[0]?.sku,
     brand: {
       "@type": "Brand",
-      name: "OVIPeps",
+      name: "OVIpeps",
     },
     offers: product.variants.map((variant) => ({
       "@type": "Offer",

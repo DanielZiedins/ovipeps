@@ -42,8 +42,7 @@ const CANADIAN_PROVINCES = [
   { value: "YT", label: "Yukon" },
 ] as const;
 
-const SHIPPING_THRESHOLD = 300;
-const FLAT_SHIPPING_RATE = 15;
+const FLAT_SHIPPING_RATE = 25;
 
 const checkoutSchema = z.object({
   email: z.string().email("Enter a valid email address"),
@@ -109,8 +108,7 @@ export function CheckoutForm() {
 
   const totals = useMemo(() => {
     const cartSubtotal = subtotal();
-    const shippingAmount =
-      cartSubtotal >= SHIPPING_THRESHOLD ? 0 : FLAT_SHIPPING_RATE;
+    const shippingAmount = FLAT_SHIPPING_RATE;
     const total = cartSubtotal + shippingAmount;
     return { cartSubtotal, shippingAmount, total };
   }, [items, subtotal]);
@@ -441,6 +439,14 @@ export function CheckoutForm() {
                 >
                   Privacy Policy
                 </Link>
+                , and the{" "}
+                <Link
+                  href="/research-disclaimer"
+                  target="_blank"
+                  className="font-semibold text-sky underline-offset-2 hover:underline"
+                >
+                  Research Disclaimer
+                </Link>
                 .
               </span>
             </label>
@@ -508,27 +514,10 @@ export function CheckoutForm() {
                     : formatCurrency(totals.shippingAmount)}
                 </span>
               </div>
-              {totals.cartSubtotal < SHIPPING_THRESHOLD && (
-                <div className="rounded-xl bg-sky/5 p-3">
-                  <p className="flex items-center gap-1.5 text-xs font-medium text-sky">
-                    <Truck className="h-3.5 w-3.5" />
-                    Add{" "}
-                    {formatCurrency(SHIPPING_THRESHOLD - totals.cartSubtotal)}{" "}
-                    more for free shipping
-                  </p>
-                  <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-sky/10">
-                    <div
-                      className="h-full rounded-full bg-gradient-to-r from-sky to-cyan transition-all"
-                      style={{
-                        width: `${Math.min(
-                          100,
-                          (totals.cartSubtotal / SHIPPING_THRESHOLD) * 100
-                        )}%`,
-                      }}
-                    />
-                  </div>
-                </div>
-              )}
+              <p className="rounded-xl bg-sky/5 p-3 text-xs font-medium text-sky">
+                <Truck className="mr-1.5 inline h-3.5 w-3.5" />
+                $25 CAD flat-rate shipping
+              </p>
               <div className="flex justify-between border-t border-border pt-2 text-base font-semibold">
                 <span>Total</span>
                 <span className="text-navy">{formatCurrency(totals.total)}</span>

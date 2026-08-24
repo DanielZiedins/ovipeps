@@ -163,14 +163,14 @@ export function Hero() {
               >
                 <span className="absolute inset-0 bg-gradient-to-r from-sky-bright/0 via-sky-bright/20 to-sky-bright/0 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700" />
                 <FlaskConical className="h-4 w-4" />
-                Explore Research Products
+                Explore Products
                 <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
               </Link>
               <Link
                 href="/about"
                 className="inline-flex items-center justify-center gap-2 rounded-xl border-2 border-white/25 bg-white/10 px-8 py-4 text-sm font-bold text-white backdrop-blur-md transition-all hover:border-cyan-bright/50 hover:bg-white/20 hover:scale-105"
               >
-                About OVIPeps
+                About OVIpeps
               </Link>
             </motion.div>
 

@@ -8,7 +8,7 @@ import { SITE_NAME } from "@/lib/content";
 export const metadata: Metadata = {
   title: "Terms of Service",
   description:
-    "Terms and conditions governing use of the OVIPeps website and purchase of research-grade peptide products.",
+    "Terms and conditions governing use of the OVIpeps website and purchase of research-grade peptide products.",
 };
 
 export default function TermsPage() {
@@ -41,7 +41,7 @@ export default function TermsPage() {
               content: (
                 <>
                   <p>
-                    By accessing ovipeps.ca or purchasing products from OVIPeps, you agree
+                    By accessing ovipeps.ca or purchasing products from OVIpeps, you agree
                     to be bound by these Terms of Service and our{" "}
                     <Link href="/privacy">Privacy Policy</Link>. If you do not agree,
                     you may not use our website or services.
@@ -69,8 +69,8 @@ export default function TermsPage() {
               content: (
                 <>
                   <p>
-                    All OVIPeps products are intended for in-vitro research and
-                    laboratory use only. They are not approved for human consumption,
+                    All OVIpeps products are intended for in-vitro research and
+                    laboratory use only. They are not intended for human consumption,
                     medical treatment, veterinary use, or diagnostic purposes.
                   </p>
                   <p>
@@ -93,8 +93,8 @@ export default function TermsPage() {
               content: (
                 <>
                   <p>
-                    Completing checkout requires agreement to these Terms of Service and
-                    our Privacy Policy. That acknowledgment constitutes your acceptance
+                    Completing checkout requires agreement to these Terms of Service,
+                    our Privacy Policy, and our Research Disclaimer. That acknowledgment constitutes your acceptance
                     of all terms on this page, including research-use restrictions,
                     limitations of liability, shipping and returns policies, and payment
                     conditions.
@@ -154,7 +154,7 @@ export default function TermsPage() {
                 <>
                   <p>
                     All content on this website — including text, graphics, logos, and
-                    product descriptions — is the property of OVIPeps or its licensors
+                    product descriptions — is the property of OVIpeps or its licensors
                     and is protected by applicable intellectual property laws. You may
                     not reproduce, distribute, or create derivative works without written
                     permission.
@@ -170,7 +170,7 @@ export default function TermsPage() {
                   <p>
                     Products and website content are provided &quot;as is&quot; without
                     warranties of any kind, express or implied, including fitness for a
-                    particular research purpose. OVIPeps does not warrant uninterrupted
+                    particular research purpose. OVIpeps does not warrant uninterrupted
                     or error-free website operation.
                   </p>
                 </>
@@ -182,7 +182,7 @@ export default function TermsPage() {
               content: (
                 <>
                   <p>
-                    To the fullest extent permitted by law, OVIPeps shall not be liable
+                    To the fullest extent permitted by law, OVIpeps shall not be liable
                     for indirect, incidental, special, or consequential damages arising
                     from your use of our products or website. Our total liability for any
                     claim shall not exceed the amount you paid for the relevant order.
@@ -197,7 +197,7 @@ export default function TermsPage() {
                 <>
                   <p>
                     These terms are governed by the laws of Canada and the province in
-                    which OVIPeps operates. Disputes shall be resolved in the courts of
+                    which OVIpeps operates. Disputes shall be resolved in the courts of
                     competent jurisdiction in Canada.
                   </p>
                 </>

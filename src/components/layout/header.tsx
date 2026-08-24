@@ -65,7 +65,7 @@ const shopSections = [
       {
         label: "Bundles",
         href: "/shop?category=bundles",
-        description: "Curated research kits",
+        description: "Curated kits — coming soon",
         icon: Package,
       },
     ],
@@ -74,6 +74,9 @@ const shopSections = [
 
 const mobileNavLinks = [
   { label: "Peptide Calculator", href: "/calculator" },
+  { label: "Research Hub", href: "/research" },
+  { label: "Partner Program", href: "/affiliates" },
+  { label: "Shop USA Affiliate", href: "https://www.revthreeusa.com/?ref=IVO" },
   { label: "About", href: "/about" },
   { label: "Shipping", href: "/shipping" },
   { label: "Contact", href: "/contact" },
@@ -163,6 +166,26 @@ export function Header() {
               onOpen={() => setShopOpen(true)}
               onClose={() => setShopOpen(false)}
             />
+            <Link
+              href="/research"
+              className="rounded-md px-3 py-2 text-sm font-medium text-foreground/80 transition-colors hover:bg-secondary hover:text-navy"
+            >
+              Research Hub
+            </Link>
+            <Link
+              href="/affiliates"
+              className="rounded-md px-3 py-2 text-sm font-medium text-foreground/80 transition-colors hover:bg-secondary hover:text-navy"
+            >
+              Partners
+            </Link>
+            <a
+              href="https://www.revthreeusa.com/?ref=IVO"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="rounded-md px-3 py-2 text-sm font-medium text-foreground/80 transition-colors hover:bg-secondary hover:text-navy"
+            >
+              Shop USA
+            </a>
             <Link
               href="/about"
               className="rounded-md px-3 py-2 text-sm font-medium text-foreground/80 transition-colors hover:bg-secondary hover:text-navy"

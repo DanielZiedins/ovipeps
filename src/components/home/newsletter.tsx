@@ -1,8 +1,8 @@
 "use client";
 
-import Link from "next/link";
+import { FormEvent, useState } from "react";
 import { motion } from "framer-motion";
-import { ArrowRight, Mail, Sparkles } from "lucide-react";
+import { Mail, Sparkles } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { ScrollReveal } from "@/components/motion/scroll-reveal";
 
@@ -13,10 +13,19 @@ interface NewsletterProps {
 }
 
 export function Newsletter({
-  title = "Questions about research procurement?",
-  subtitle = "Our team can help with catalog availability, Canadian shipping, and order support. Reach out anytime.",
+  title = "Get OVIpeps updates",
+  subtitle = "Join our email list for inventory announcements, documentation updates, and Canadian fulfillment news.",
   className,
 }: NewsletterProps) {
+  const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
+  async function subscribe(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setStatus("loading");
+    const form = new FormData(event.currentTarget);
+    const response = await fetch("/api/newsletter", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ email: form.get("email") }) });
+    setStatus(response.ok ? "success" : "error");
+    if (response.ok) event.currentTarget.reset();
+  }
   return (
     <section className={cn("py-16 sm:py-24", className)}>
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
@@ -48,30 +57,21 @@ export function Newsletter({
 
                 <div className="mb-2 inline-flex items-center gap-1.5 rounded-full bg-white/20 px-3 py-1 text-xs font-bold uppercase tracking-widest text-white">
                   <Sparkles className="h-3 w-3" />
-                  We&apos;re here to help
+                  Email updates
                 </div>
 
                 <h2 className="text-3xl font-bold text-white sm:text-4xl">{title}</h2>
                 <p className="mt-3 text-base leading-relaxed text-white/80">{subtitle}</p>
 
-                <div className="mt-8 flex flex-col justify-center gap-3 sm:flex-row">
-                  <Link
-                    href="/contact"
-                    className="inline-flex items-center justify-center gap-2 rounded-xl bg-white px-7 py-4 text-sm font-bold text-navy-deep shadow-lg transition-all hover:-translate-y-0.5 hover:shadow-xl"
-                  >
-                    Contact Support
-                    <ArrowRight className="h-4 w-4" />
-                  </Link>
-                  <Link
-                    href="/shop"
-                    className="inline-flex items-center justify-center gap-2 rounded-xl border border-white/25 bg-white/10 px-7 py-4 text-sm font-bold text-white backdrop-blur-sm transition-all hover:bg-white/20"
-                  >
-                    Browse Catalog
-                  </Link>
-                </div>
+                <form onSubmit={subscribe} className="mx-auto mt-8 flex max-w-lg flex-col gap-3 sm:flex-row">
+                  <input name="email" type="email" required aria-label="Email address" placeholder="you@example.com" className="min-w-0 flex-1 rounded-xl border border-white/25 bg-white px-5 py-4 text-sm text-navy-deep outline-none ring-cyan-bright focus:ring-2" />
+                  <button type="submit" disabled={status === "loading"} className="rounded-xl bg-navy-deep px-7 py-4 text-sm font-bold text-white shadow-lg transition hover:bg-navy disabled:opacity-60">{status === "loading" ? "Joining…" : "Join the list"}</button>
+                </form>
+                {status === "success" && <p className="mt-3 text-sm font-semibold text-white">You’re on the list—thank you!</p>}
+                {status === "error" && <p className="mt-3 text-sm font-semibold text-white">We couldn’t add you yet. Please try again shortly.</p>}
 
                 <p className="mt-5 text-xs text-white/55">
-                  Products are for laboratory research purposes only. By ordering, you agree to our Terms of Service.
+                  Unsubscribe anytime. Products are for laboratory research purposes only.
                 </p>
               </div>
             </div>

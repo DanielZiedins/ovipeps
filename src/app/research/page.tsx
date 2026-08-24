@@ -19,7 +19,7 @@ import type { ArticleCategory } from "@/generated/prisma/enums";
 export const metadata: Metadata = {
   title: "Research Hub",
   description:
-    "Educational articles, peptide guides, COA resources, and laboratory protocols from OVIPeps — Canada's research-grade peptide supplier.",
+    "Educational articles, peptide guides, COA resources, and laboratory protocols from OVIpeps — Canada's research-grade peptide supplier.",
 };
 
 export default async function ResearchPage() {
@@ -64,6 +64,11 @@ export default async function ResearchPage() {
       />
 
       <div className="mx-auto max-w-7xl px-4 py-12 lg:px-6 lg:py-16">
+        <section className="mb-12 rounded-2xl border border-sky/15 bg-sky/5 p-6">
+          <h2 className="text-xl font-semibold text-navy-deep">What are research peptides?</h2>
+          <p className="mt-3 leading-relaxed text-muted-foreground">Research peptides are short chains of amino acids synthesized for controlled laboratory and scientific research; used to study molecular interactions, cellular processes, and analytical methods in qualified settings.</p>
+          <p className="mt-3 text-sm text-muted-foreground">Documentation is batch-specific. Visit the <Link href="/lab-results" className="font-semibold text-sky hover:underline">COA Library</Link> to inspect what is actually available.</p>
+        </section>
         <section className="mb-16">
           <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
             <div>
@@ -183,6 +188,10 @@ export default async function ResearchPage() {
             </section>
           );
         })}
+        <section className="mt-14 rounded-2xl border border-burgundy/20 bg-burgundy/5 p-6">
+          <h2 className="font-semibold text-burgundy">Research use only</h2>
+          <p className="mt-2 text-sm leading-relaxed text-muted-foreground">Products sold through OVIpeps are intended exclusively for in-vitro research and laboratory use. They are not intended for human consumption, medical treatment, diagnosis, or veterinary use.</p>
+        </section>
       </div>
     </>
   );

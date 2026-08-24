@@ -50,9 +50,9 @@ async function ShopContent({ searchParams }: { searchParams: Record<string, stri
           Limited stock available now
         </p>
         <p className="mt-1.5 text-sm leading-relaxed text-emerald-950/80">
-          Retatrutide GLP-3 10 mg ($80 CAD, 5 vials) and MOTS-C 10 mg
-          ($45 CAD, 10 vials) are available. Every other product is marked
-          Coming Soon / Out of Stock.
+          Retatrutide (GLP-3) 5 mg ($45 CAD, 4 vials) and CJC/Ipamorelin 10 mg
+          ($80 CAD, 4 vials) are available. Every other product is marked
+          Restocking / Coming Soon.
         </p>
       </div>
       <ShopCatalog
@@ -65,7 +65,7 @@ async function ShopContent({ searchParams }: { searchParams: Record<string, stri
       {disclaimer && (
         <div className="mt-16 rounded-2xl border border-burgundy/20 bg-gradient-to-r from-burgundy/5 to-transparent px-6 py-5">
           <p className="text-xs font-bold uppercase tracking-wider text-burgundy">Research Use Only</p>
-          <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{disclaimer}</p>
+          <p className="mt-2 text-sm leading-relaxed text-muted-foreground">All products are sold for research purposes only. Not intended for human consumption.</p>
         </div>
       )}
     </div>

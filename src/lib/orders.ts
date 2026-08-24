@@ -7,6 +7,7 @@ import {
   getCatalogProductName,
 } from "@/lib/catalog-status";
 import { generateOrderNumber } from "@/lib/utils";
+import { emailTemplates, sendEmail } from "@/lib/emails";
 
 export interface ShippingAddress {
   firstName: string;
@@ -36,14 +37,7 @@ export interface CreateOrderInput {
   userId?: string | null;
 }
 
-const FLAT_SHIPPING_RATE = 15;
-
-async function getShippingThreshold() {
-  const setting = await db.siteSetting.findUnique({
-    where: { key: "shipping_threshold" },
-  });
-  return Number(setting?.value ?? 300);
-}
+const FLAT_SHIPPING_RATE = 25;
 
 async function calculateDiscount(
   code: string | null | undefined,
@@ -145,9 +139,7 @@ export async function createOrder(input: CreateOrderInput) {
     subtotal
   );
 
-  const shippingThreshold = await getShippingThreshold();
-  const shippingAmount =
-    subtotal - discountAmount >= shippingThreshold ? 0 : FLAT_SHIPPING_RATE;
+  const shippingAmount = FLAT_SHIPPING_RATE;
   const taxAmount = 0;
   const total =
     Math.round((subtotal - discountAmount + shippingAmount + taxAmount) * 100) /
@@ -231,6 +223,31 @@ export async function createOrder(input: CreateOrderInput) {
   const affiliateCode = input.affiliateCode ?? input.referralCode;
   if (affiliateCode) {
     await attributeOrder(order.id, affiliateCode);
+  }
+
+  const eTransferSetting = await db.siteSetting.findUnique({
+    where: { key: "etransfer_email" },
+  });
+  try {
+    await sendEmail(
+      order.email,
+      emailTemplates.orderConfirmation({
+        orderNumber: order.orderNumber,
+        total: `$${order.total.toFixed(2)} CAD`,
+        name: input.shippingAddress.firstName,
+        etransferEmail: eTransferSetting?.value ?? "orders@ovipeps.ca",
+        autodepositName: "IN Z",
+        items: order.items.map((item) => ({
+          name: item.productName,
+          variant: item.variantName,
+          quantity: item.quantity,
+          total: `$${item.totalPrice.toFixed(2)} CAD`,
+        })),
+      })
+    );
+  } catch (error) {
+    // The order is valid even when the email provider is temporarily unavailable.
+    console.error("Order confirmation email failed", error);
   }
 
   return order;

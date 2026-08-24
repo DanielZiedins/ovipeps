@@ -15,7 +15,7 @@ import { SITE_NAME } from "@/lib/content";
 export const metadata: Metadata = {
   title: "Partner Program",
   description:
-    "Join the OVIPeps Partner Program. Earn commission promoting research-grade peptides to qualified laboratories across Canada.",
+    "Join the OVIpeps Partner Program. Earn commission promoting research-grade peptides to qualified laboratories across Canada.",
 };
 
 const benefits = [
@@ -23,13 +23,13 @@ const benefits = [
     icon: BadgeDollarSign,
     title: "Competitive commission",
     description:
-      "Earn a percentage on every qualifying order placed through your unique referral link. Commissions are calculated on the commissionable subtotal after discounts.",
+      "Earn 15% on qualifying regularly priced orders placed through your unique referral link or code. Sale and promotional orders are excluded.",
   },
   {
     icon: Link2,
     title: "Simple tracking",
     description:
-      "Get a personal referral code and shareable URL. Our 30-day attribution window ensures you receive credit when researchers return to complete their purchase.",
+      "Get a personal referral code and a URL you can copy into posts, profiles, emails, or messages. Our 30-day attribution window tracks qualifying return purchases.",
   },
   {
     icon: BarChart3,
@@ -50,7 +50,7 @@ const steps = [
     step: "01",
     title: "Apply",
     description:
-      "Tell us about your audience, platform, and how you plan to introduce OVIPeps to qualified researchers.",
+      "Tell us about your audience, platform, and how you plan to introduce OVIpeps to qualified researchers.",
   },
   {
     step: "02",
@@ -77,8 +77,8 @@ export default function AffiliatesPage() {
     <>
       <PageHero
         eyebrow="Partner Program"
-        title="Earn with OVIPeps"
-        description={`Partner with ${SITE_NAME} and earn commission by connecting qualified researchers with research-grade peptides backed by documentation and Canadian fulfillment.`}
+        title="Earn with OVIpeps"
+        description={`Partner with ${SITE_NAME} and earn commission by connecting qualified researchers with research-grade peptides backed by documentation and Canadian fulfillment. A USA affiliate program is now available.`}
       >
         <div className="flex flex-wrap gap-4">
           <Link
@@ -88,6 +88,7 @@ export default function AffiliatesPage() {
             Apply now
             <ArrowRight className="h-4 w-4" />
           </Link>
+          <a href="https://b12c76e8-6d99-4f94-8713-c4c733e01894.goaffpro.com/create-account?ref=IVO" target="_blank" rel="noopener noreferrer" className="inline-flex h-12 items-center gap-2 rounded-xl border border-sky/20 bg-white/80 px-6 text-sm font-semibold text-foreground backdrop-blur-sm transition-all hover:border-sky/40 hover:bg-white">Join USA program <ArrowRight className="h-4 w-4" /></a>
           <Link
             href="/affiliates/terms"
             className="inline-flex h-12 items-center rounded-xl border border-sky/20 bg-white/80 px-6 text-sm font-semibold text-foreground backdrop-blur-sm transition-all hover:border-sky/40 hover:bg-white"
@@ -175,12 +176,16 @@ export default function AffiliatesPage() {
             <p className="mt-3 leading-relaxed text-white/75">
               We work with content creators, educators, and publishers who reach
               qualified laboratory and research audiences. Partners must promote
-              OVIPeps accurately — emphasizing research-use-only classification
+              OVIpeps accurately — emphasizing research-use-only classification
               and never making medical or therapeutic claims.
             </p>
           </div>
           <div className="flex flex-col justify-center">
             <ul className="space-y-3 text-sm text-white/70">
+              <li className="flex items-start gap-2">
+                <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-cyan-bright" />
+                Podcast, video, and social media creators with applicable audiences
+              </li>
               <li className="flex items-start gap-2">
                 <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-cyan-bright" />
                 Science communicators and research educators
@@ -192,10 +197,6 @@ export default function AffiliatesPage() {
               <li className="flex items-start gap-2">
                 <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-cyan-bright" />
                 Canadian research community publishers
-              </li>
-              <li className="flex items-start gap-2">
-                <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-cyan-bright" />
-                Podcast and video creators with qualified audiences
               </li>
             </ul>
             <Link

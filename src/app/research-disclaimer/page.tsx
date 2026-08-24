@@ -8,13 +8,13 @@ import { getSiteSetting } from "@/lib/products";
 export const metadata: Metadata = {
   title: "Research Disclaimer",
   description:
-    "Important research-use-only disclaimer for OVIPeps products — not for human consumption, medical treatment, or diagnostic use.",
+    "Important research-use-only disclaimer for OVIpeps products — not for human consumption, medical treatment, or diagnostic use.",
 };
 
 export default async function ResearchDisclaimerPage() {
   const shortDisclaimer =
     (await getSiteSetting("research_disclaimer")) ??
-    "All products are sold for research purposes only. Not for human consumption.";
+    "All products are sold for research purposes only. Not intended for human or veterinary consumption.";
 
   return (
     <>
@@ -50,7 +50,7 @@ export default async function ResearchDisclaimerPage() {
               content: (
                 <>
                   <p>
-                    OVIPeps supplies research-grade peptides and laboratory materials
+                    OVIpeps supplies research-grade peptides and laboratory materials
                     intended exclusively for in-vitro and laboratory research conducted by
                     qualified professionals in appropriate institutional or commercial
                     research settings.
@@ -60,6 +60,10 @@ export default async function ResearchDisclaimerPage() {
                     They have not been evaluated or approved by Health Canada or any
                     regulatory authority for human or veterinary therapeutic use.
                   </p>
+                  <p>
+                    Regulatory status varies by product and country; approval in another
+                    country does not constitute approval by Health Canada.
+                  </p>
                 </>
               ),
             },
@@ -68,7 +72,7 @@ export default async function ResearchDisclaimerPage() {
               title: "Prohibited uses",
               content: (
                 <>
-                  <p>OVIPeps products must not be used for:</p>
+                  <p>OVIpeps products are not intended for:</p>
                   <ul>
                     <li>Human consumption or self-administration</li>
                     <li>Medical, therapeutic, or diagnostic treatment</li>
@@ -119,13 +123,13 @@ export default async function ResearchDisclaimerPage() {
               content: (
                 <>
                   <p>
-                    By purchasing from OVIPeps, you acknowledge that you understand the
+                    By purchasing from OVIpeps, you acknowledge that you understand the
                     research-use-only nature of our products and accept full
                     responsibility for their handling, storage, and use in accordance
                     with applicable laws and laboratory safety standards.
                   </p>
                   <p>
-                    OVIPeps is not liable for misuse, improper handling, or application
+                    OVIpeps is not liable for misuse, improper handling, or application
                     of products contrary to this disclaimer.
                   </p>
                 </>
@@ -138,7 +142,7 @@ export default async function ResearchDisclaimerPage() {
                 <>
                   <p>
                     For product documentation or order inquiries, contact{" "}
-                    <a href="mailto:support@ovipeps.ca">support@ovipeps.ca</a>. For
+                    <a href="mailto:ovipeps@gmail.com">ovipeps@gmail.com</a>. For
                     medical questions, consult a qualified healthcare professional — we
                     do not provide medical advice.
                   </p>

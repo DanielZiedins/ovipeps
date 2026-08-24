@@ -150,7 +150,7 @@ export function ProductDetailClient({
           />
           {inStock
             ? `Available now — only ${stockQuantity} vials in stock`
-            : "Coming Soon / Out of Stock"}
+            : "Restocking / Coming Soon"}
         </span>
       </div>
 
@@ -161,7 +161,7 @@ export function ProductDetailClient({
         disabled={!inStock || !selectedVariant}
       >
         <ShoppingBag className="h-4 w-4" />
-        {inStock ? "Add to Cart" : "Coming Soon / Out of Stock"}
+        {inStock ? "Add to Cart" : "Restocking / Coming Soon"}
       </Button>
 
       {!inStock && (
@@ -172,11 +172,11 @@ export function ProductDetailClient({
           </p>
           <div className="mt-3 flex flex-wrap gap-2">
             <a
-              href="mailto:support@ovipeps.ca"
+              href="mailto:ovipeps@gmail.com"
               className="inline-flex items-center gap-2 rounded-lg bg-navy px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-navy-deep"
             >
               <Mail className="h-4 w-4" />
-              support@ovipeps.ca
+              ovipeps@gmail.com
             </a>
             <Link
               href="/contact"

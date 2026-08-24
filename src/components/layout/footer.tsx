@@ -25,6 +25,9 @@ const companyLinks = [
   { label: "Shipping", href: "/shipping" },
   { label: "Payment Instructions", href: "/payment-instructions" },
   { label: "Affiliate Program", href: "/affiliates" },
+  { label: "Research Hub", href: "/research" },
+  { label: "FAQs", href: "/research/faq" },
+  { label: "Shop USA Affiliate", href: "https://www.revthreeusa.com/?ref=IVO" },
   { label: "Account", href: "/account" },
 ];
 
@@ -38,7 +41,7 @@ const legalLinks = [
 const supportLinks = [
   { label: "Contact Us", href: "/contact" },
   { label: "Account", href: "/account" },
-  { label: "Terms", href: "/terms" },
+  { label: "FAQs", href: "/research/faq" },
 ];
 
 function FooterLinkGroup({
@@ -120,7 +123,7 @@ export function Footer() {
             {
               icon: FlaskConical,
               title: "Research Use Only",
-              desc: "All products are sold for research purposes only. Not for human or veterinary consumption.",
+              desc: "All products are sold for research purposes only. Not intended for human or veterinary consumption.",
             },
             {
               icon: Shield,
@@ -131,7 +134,7 @@ export function Footer() {
               icon: Mail,
               title: "Support",
               desc: null,
-              email: "support@ovipeps.ca",
+              email: "ovipeps@gmail.com",
             },
           ].map(({ icon: Icon, title, desc, email }) => (
             <div
@@ -160,7 +163,7 @@ export function Footer() {
 
         <div className="mt-10 flex flex-col items-center justify-between gap-5 border-t border-white/10 pt-8 sm:flex-row">
           <p className="text-xs text-white/45">
-            &copy; {year} OVIPeps. All rights reserved. Prices in CAD.
+            &copy; {year} OVIpeps. All rights reserved. Prices in CAD.
           </p>
 
           <div className="flex flex-wrap items-center justify-center gap-4">

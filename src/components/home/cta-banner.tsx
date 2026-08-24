@@ -10,7 +10,6 @@ const MARQUEE_ITEMS = [
   "Limited Stock Available",
   "Interac e-Transfer",
   "Research Use Only",
-  "Batch Documentation",
   "Fast Support",
   "Clear Checkout",
   "Lab-Grade Compounds",
@@ -60,7 +59,7 @@ export function CtaBanner() {
                   <span className="gradient-text">Limited Stock Release</span>
                 </h2>
                 <p className="mt-3 max-w-md text-base text-white/70">
-                  Shop Retatrutide GLP-3 10 mg and MOTS-C 10 mg while quantities last. All other products are coming soon.
+                  Shop Retatrutide (GLP-3) 5 mg and CJC/Ipamorelin 10 mg while quantities last. All other products are restocking.
                 </p>
               </div>
 

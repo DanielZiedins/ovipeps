@@ -3,23 +3,14 @@ import Link from "next/link";
 import { PageHero } from "@/components/content/page-hero";
 import { Breadcrumb } from "@/components/content/breadcrumb";
 import { LegalSectionList } from "@/components/content/legal-section";
-import { getSiteSetting } from "@/lib/products";
 
 export const metadata: Metadata = {
   title: "Shipping Policy",
   description:
-    "OVIPeps shipping policy for Canadian research peptide orders — processing times, carriers, tracking, and delivery information.",
+    "OVIpeps shipping policy for Canadian research peptide orders — processing times, carriers, tracking, and delivery information.",
 };
 
-export default async function ShippingPage() {
-  const [configuredThreshold, configuredMessage] = await Promise.all([
-    getSiteSetting("shipping_threshold"),
-    getSiteSetting("free_shipping_message"),
-  ]);
-  const threshold = configuredThreshold ?? "300";
-  const freeShippingMessage =
-    configuredMessage ?? `Free shipping on orders over $${threshold} CAD`;
-
+export default function ShippingPage() {
   return (
     <>
       <PageHero
@@ -49,7 +40,7 @@ export default async function ShippingPage() {
               content: (
                 <>
                   <p>
-                    OVIPeps fulfills research orders from within Canada. Domestic
+                    OVIpeps fulfills research orders from within Canada. Domestic
                     fulfillment helps reduce cross-border delays and provides
                     researchers with local support for order inquiries, documentation
                     requests, and shipment tracking.
@@ -80,12 +71,7 @@ export default async function ShippingPage() {
               title: "Shipping rates",
               content: (
                 <>
-                  <p>{freeShippingMessage}.</p>
-                  <p>
-                    A flat shipping rate is shown at checkout for orders below the
-                    free-shipping threshold. Any applicable shipping charge appears
-                    before you place the order.
-                  </p>
+                  <p>A flat shipping fee of <strong>$25 CAD</strong> applies to every order. The charge appears at checkout before you place the order.</p>
                 </>
               ),
             },
@@ -113,7 +99,7 @@ export default async function ShippingPage() {
                 <>
                   <p>
                     Please ensure your shipping address is complete and accurate at
-                    checkout. OVIPeps is not responsible for delays caused by incorrect
+                    checkout. OVIpeps is not responsible for delays caused by incorrect
                     addresses provided by the customer.
                   </p>
                   <p>
@@ -131,7 +117,7 @@ export default async function ShippingPage() {
                   <p>
                     If your shipment arrives damaged or appears lost in transit, contact
                     us at{" "}
-                    <a href="mailto:support@ovipeps.ca">support@ovipeps.ca</a> within
+                    <a href="mailto:ovipeps@gmail.com">ovipeps@gmail.com</a> within
                     7 days of the expected delivery date. Include your order number and
                     photos of any visible damage to packaging.
                   </p>

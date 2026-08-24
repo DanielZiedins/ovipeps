@@ -14,6 +14,9 @@ const applySchema = z.object({
   name: z.string().min(2, "Please enter your name"),
   email: z.string().email("Please enter a valid email address"),
   socialChannel: z.string().optional(),
+  socialChannel2: z.string().optional(),
+  socialChannel3: z.string().optional(),
+  socialChannel4: z.string().optional(),
   website: z
     .string()
     .url("Please enter a valid URL")
@@ -23,7 +26,7 @@ const applySchema = z.object({
   primaryPlatform: z.string().min(1, "Please select your primary platform"),
   promotionPlan: z
     .string()
-    .min(20, "Please describe how you plan to promote OVIPeps"),
+    .min(20, "Please describe how you plan to promote OVIpeps"),
 });
 
 type ApplyFormData = z.infer<typeof applySchema>;
@@ -72,6 +75,9 @@ export function AffiliateApplyForm({
       name: defaultName,
       email: defaultEmail,
       socialChannel: "",
+      socialChannel2: "",
+      socialChannel3: "",
+      socialChannel4: "",
       website: "",
       audienceSize: "",
       primaryPlatform: "",
@@ -116,7 +122,7 @@ export function AffiliateApplyForm({
           Application received
         </h3>
         <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
-          Thank you for applying to the OVIPeps Partner Program. Our team reviews
+          Thank you for applying to the OVIpeps Partner Program. Our team reviews
           applications within 3–5 business days and will contact you by email with
           next steps.
         </p>
@@ -148,6 +154,12 @@ export function AffiliateApplyForm({
           error={errors.email?.message}
           {...register("email")}
         />
+      </div>
+
+      <div className="grid gap-5 sm:grid-cols-3">
+        <Input label="Social handle 2" placeholder="Optional" {...register("socialChannel2")} />
+        <Input label="Social handle 3" placeholder="Optional" {...register("socialChannel3")} />
+        <Input label="Social handle 4" placeholder="Optional" {...register("socialChannel4")} />
       </div>
 
       <div className="grid gap-5 sm:grid-cols-2">
@@ -204,7 +216,7 @@ export function AffiliateApplyForm({
 
       <Textarea
         label="Promotion plan"
-        placeholder="Describe your audience, content style, and how you plan to introduce OVIPeps to qualified researchers..."
+        placeholder="Describe your audience, content style, and how you plan to introduce OVIpeps to qualified researchers..."
         rows={6}
         error={errors.promotionPlan?.message}
         {...register("promotionPlan")}
@@ -222,7 +234,7 @@ export function AffiliateApplyForm({
           <a href="/affiliates/terms" className="text-accent hover:text-navy">
             Affiliate Program Terms
           </a>
-          . OVIPeps reviews all applications and reserves the right to approve or
+          . OVIpeps reviews all applications and reserves the right to approve or
           decline partners at our discretion.
         </p>
       </div>
