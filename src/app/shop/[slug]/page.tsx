@@ -84,6 +84,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
   const variants = mapDetailVariants(product.variants);
   const hasCoa = product.coaDocuments.length > 0;
   const lowestPrice = getLowestPrice(variants);
+  const inStock = variants.some((variant) => variant.inStock);
   const disclaimer =
     researchDisclaimer ??
     "All products are sold for research purposes only. Not intended for human consumption.";
@@ -189,7 +190,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
               </p>
             )}
 
-            {variants.length === 1 && (
+            {variants.length === 1 && inStock && (
               <p className="mt-6 text-3xl font-semibold text-navy-deep">
                 {formatCurrency(lowestPrice)}
               </p>
