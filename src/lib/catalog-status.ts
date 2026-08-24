@@ -23,7 +23,7 @@ export function applyCatalogVariantPolicy(
   const availableVariant = getAvailableVariant(sku);
 
   if (!availableVariant) {
-    return { price: currentPrice, stockQuantity: 0, inStock: false };
+    return { price: 0, stockQuantity: 0, inStock: false };
   }
 
   const stockQuantity = Math.min(
