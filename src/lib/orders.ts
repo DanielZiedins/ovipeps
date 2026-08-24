@@ -1,5 +1,6 @@
 import type { Prisma } from "@/generated/prisma/client";
 import { db } from "@/lib/db";
+import { syncAvailableProducts } from "@/lib/catalog-sync";
 import { attributeOrder, createCommission } from "@/lib/affiliate";
 import {
   applyCatalogVariantPolicy,
@@ -88,6 +89,8 @@ export async function createOrder(input: CreateOrderInput) {
   if (!input.items.length) {
     throw new Error("Cart is empty");
   }
+
+  await syncAvailableProducts();
 
   const variantIds = input.items.map((item) => item.variantId);
   const variants = await db.productVariant.findMany({
