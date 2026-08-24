@@ -51,7 +51,9 @@ export const DEFAULT_PRODUCT_FILTERS: ProductFilterState = {
 
 export function getLowestPrice(variants: ProductVariant[]): number {
   if (variants.length === 0) return 0;
-  return Math.min(...variants.map((v) => v.price));
+  const availableVariants = variants.filter((variant) => variant.inStock);
+  const candidates = availableVariants.length > 0 ? availableVariants : variants;
+  return Math.min(...candidates.map((variant) => variant.price));
 }
 
 export function getDefaultVariant(variants: ProductVariant[]): ProductVariant | undefined {
