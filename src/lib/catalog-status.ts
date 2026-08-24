@@ -1,6 +1,8 @@
 export const AVAILABLE_VARIANTS = {
   "GLP3-5MG": { price: 45, stockQuantity: 4 },
-  "MOTSC-10MG": { price: 80, stockQuantity: 4 },
+  "CJCIPA-10MG": { price: 80, stockQuantity: 4 },
+  "GHKCU-50MG": { price: 50, stockQuantity: 8 },
+  "MOTSC-10MG": { price: 45, stockQuantity: 10 },
 } as const;
 
 export function getAvailableVariant(sku: string) {
@@ -9,7 +11,7 @@ export function getAvailableVariant(sku: string) {
 
 export function getCatalogProductName(slug: string, currentName: string) {
   if (slug === "glp-3") return "Retatrutide (GLP-3)";
-  if (slug === "mots-c") return "CJC/Ipamorelin";
+  if (slug === "cjc-ipamorelin") return "CJC/Ipamorelin";
   return currentName;
 }
 
@@ -37,4 +39,4 @@ export function applyCatalogVariantPolicy(
 }
 
 export const CATALOG_AVAILABILITY_MESSAGE =
-  "Retatrutide (GLP-3) 5 mg and CJC/Ipamorelin 10 mg are available now in limited quantities. All other products are restocking / coming soon.";
+  "Retatrutide (GLP-3) 5 mg, CJC/Ipamorelin 10 mg, GHK-Cu 50 mg, and MOTS-C 10 mg are available now in limited quantities. All other products are restocking / coming soon.";
