@@ -11,7 +11,15 @@ export async function POST(request: Request) {
       /** @deprecated Prefer termsAccepted */
       researchUseAccepted?: boolean;
     };
-    const session = await auth();
+    let userId: string | null = null;
+    try {
+      const session = await auth();
+      userId = session?.user?.id ?? null;
+    } catch (error) {
+      // Account lookup is optional for guest checkout. A missing or temporary
+      // auth configuration must not prevent a customer from placing an order.
+      console.error("Optional checkout session lookup failed", error);
+    }
 
     if (!body.email?.trim()) {
       return NextResponse.json({ error: "Email is required" }, { status: 400 });
@@ -53,7 +61,7 @@ export async function POST(request: Request) {
 
     const order = await createOrder({
       ...body,
-      userId: session?.user?.id ?? null,
+      userId,
     });
 
     return NextResponse.json({
@@ -72,6 +80,7 @@ export async function POST(request: Request) {
       "Discount code has expired",
       "Discount code has reached its usage limit",
       "Product and variant mismatch",
+      "One or more cart items are no longer available",
     ];
     const isSafe =
       safeMessages.some((safeMessage) => message.startsWith(safeMessage)) ||
