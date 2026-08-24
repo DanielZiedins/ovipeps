@@ -110,7 +110,7 @@ async function main() {
       researchCategory: "Peptide Blend",
       featured: true,
       isNew: true,
-      imageUrl: "/images/products/mots-c.png",
+      imageUrl: "/images/products/cjc-ipamorelin.jpg",
       variants: [
         { name: "10mg", sku: "MOTSC-10MG", price: 80, concentration: "10mg", size: "10mg", stockQuantity: 4 },
         { name: "40mg", sku: "MOTSC-40MG", price: 189.99, concentration: "40mg", size: "40mg", stockQuantity: 0 },
