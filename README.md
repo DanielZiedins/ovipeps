@@ -31,12 +31,10 @@ npm run dev
 
 Open [http://localhost:3000](http://localhost:3000)
 
-## Demo Credentials
+## Seed Account Passwords
 
-| Role     | Email              | Password  |
-|----------|--------------------|-----------|
-| Admin    | admin@ovipeps.ca   | admin123  |
-| Customer | demo@ovipeps.ca    | demo123   |
+Seed account passwords must be supplied through the `SEED_ADMIN_PASSWORD` and
+`SEED_DEMO_PASSWORD` environment variables. Never commit account passwords.
 
 ## Key Routes
 

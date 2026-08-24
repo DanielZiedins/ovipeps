@@ -51,7 +51,7 @@ npm run db:seed
 npm run dev
 ```
 
-## Demo Credentials
+## Seed Account Passwords
 
-- Admin: `admin@ovipeps.ca` / `admin123`
-- Customer: `demo@ovipeps.ca` / `demo123`
+Set `SEED_ADMIN_PASSWORD` and `SEED_DEMO_PASSWORD` in the environment before
+running `npm run db:seed`. Never commit account passwords to the repository.
