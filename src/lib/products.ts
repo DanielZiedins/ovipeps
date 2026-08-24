@@ -8,6 +8,7 @@ import {
 import type { Prisma, ProductCategory } from "@/generated/prisma/client";
 import {
   getLowestPrice,
+  isProductInStock,
   type AvailabilityFilter,
   type ProductCardData,
   type ProductVariant,
@@ -124,23 +125,45 @@ function sortProducts(
 
   switch (sort) {
     case "price-asc":
-      return sorted.sort(
+      sorted.sort(
         (a, b) => getLowestPrice(a.variants) - getLowestPrice(b.variants)
       );
+      break;
     case "price-desc":
-      return sorted.sort(
+      sorted.sort(
         (a, b) => getLowestPrice(b.variants) - getLowestPrice(a.variants)
       );
+      break;
     case "name-asc":
-      return sorted.sort((a, b) => a.name.localeCompare(b.name));
+      sorted.sort((a, b) => a.name.localeCompare(b.name));
+      break;
     case "name-desc":
-      return sorted.sort((a, b) => b.name.localeCompare(a.name));
+      sorted.sort((a, b) => b.name.localeCompare(a.name));
+      break;
     case "newest":
-      return sorted;
+      break;
     case "featured":
     default:
-      return sorted;
+      break;
   }
+
+  return sorted.sort(
+    (a, b) => Number(isProductInStock(b.variants)) - Number(isProductInStock(a.variants))
+  );
+}
+
+function mapFallbackProduct(product: ProductCardData): ProductCardData {
+  return {
+    ...product,
+    variants: product.variants.map((variant) => ({
+      ...variant,
+      ...applyCatalogVariantPolicy(
+        variant.sku,
+        variant.price,
+        variant.stockQuantity ?? 0
+      ),
+    })),
+  };
 }
 
 function applyPostFilters(
@@ -171,7 +194,7 @@ function applyPostFilters(
 }
 
 function filterFallbackProducts(filters: ProductQueryFilters): ProductCardData[] {
-  let result = [...FALLBACK_PRODUCTS];
+  let result = FALLBACK_PRODUCTS.map(mapFallbackProduct);
   if (filters.filter === "featured") result = result.filter((p) => p.featured);
   if (filters.filter === "new") result = result.filter((p) => p.isNew);
   if (filters.q?.trim()) {
@@ -210,11 +233,7 @@ export async function getProducts(
     const cardData = products.map(getProductCardData);
     const filtered = applyPostFilters(cardData, filters);
 
-    if (sort === "price-asc" || sort === "price-desc") {
-      return sortProducts(filtered, sort);
-    }
-
-    return filtered;
+    return sortProducts(filtered, sort);
   } catch {
     return filterFallbackProducts(filters);
   }
@@ -317,9 +336,9 @@ export async function getFeaturedProducts(limit = 8): Promise<ProductCardData[]>
       orderBy: [{ sortOrder: "asc" }, { name: "asc" }],
       take: limit,
     });
-    return products.map(getProductCardData);
+    return sortProducts(products.map(getProductCardData));
   } catch {
-    return FALLBACK_PRODUCTS.filter((p) => p.featured).slice(0, limit);
+    return sortProducts(FALLBACK_PRODUCTS.filter((p) => p.featured).map(mapFallbackProduct)).slice(0, limit);
   }
 }
 
@@ -340,14 +359,14 @@ export async function getRelatedProducts(
       take: limit,
     });
 
-    if (products.length > 0) return products.map(getProductCardData);
+    if (products.length > 0) return sortProducts(products.map(getProductCardData));
   } catch {
     // fall through
   }
 
-  return FALLBACK_PRODUCTS.filter(
+  return sortProducts(FALLBACK_PRODUCTS.filter(
     (p) => p.id !== productId && (!researchCategory || p.researchCategory === researchCategory)
-  )
+  ).map(mapFallbackProduct))
     .slice(0, limit);
 }
 
@@ -369,13 +388,18 @@ export async function getProductPriceRange(): Promise<{ min: number; max: number
   try {
     const variants = await db.productVariant.findMany({
       where: { product: { published: true } },
-      select: { price: true },
+      select: { sku: true, price: true, stockQuantity: true },
     });
     if (variants.length === 0) return { min: 0, max: 0 };
-    const prices = variants.map((v) => v.price);
+    const prices = variants
+      .map((v) => applyCatalogVariantPolicy(v.sku, v.price, v.stockQuantity).price)
+      .filter((price) => price > 0);
+    if (prices.length === 0) return { min: 0, max: 0 };
     return { min: Math.min(...prices), max: Math.max(...prices) };
   } catch {
-    const prices = FALLBACK_PRODUCTS.flatMap((p) => p.variants.map((v) => v.price));
+    const prices = FALLBACK_PRODUCTS.flatMap((p) =>
+      p.variants.map((v) => applyCatalogVariantPolicy(v.sku, v.price, v.stockQuantity ?? 0).price)
+    ).filter((price) => price > 0);
     return { min: Math.min(...prices), max: Math.max(...prices) };
   }
 }
