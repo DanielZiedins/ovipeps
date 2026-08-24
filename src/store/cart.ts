@@ -106,7 +106,7 @@ export const useCartStore = create<CartStore>()(
     }),
     {
       name: "ovipeps-cart",
-      version: 2,
+      version: 3,
       migrate: (persistedState) => {
         const state = persistedState as Partial<CartStore>;
         const items = (state.items ?? []).flatMap((item) => {
