@@ -55,7 +55,7 @@ async function main() {
       isNew: true,
       imageUrl: "/images/products/glp-3.png",
       variants: [
-        { name: "5mg", sku: "GLP3-5MG", price: 45, concentration: "5mg", size: "5mg", stockQuantity: 4 },
+        { name: "5mg", sku: "GLP3-5MG", price: 80, concentration: "5mg", size: "5mg", stockQuantity: 4 },
         { name: "10mg", sku: "GLP3-10MG", price: 80, concentration: "10mg", size: "10mg", stockQuantity: 0 },
       ],
     },
