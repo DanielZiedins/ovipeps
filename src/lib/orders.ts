@@ -221,13 +221,6 @@ export async function createOrder(input: CreateOrderInput) {
         items: {
           create: orderItems,
         },
-        payments: {
-          create: {
-            amount: total,
-            method: "INTERAC_E_TRANSFER",
-            status: "PENDING",
-          },
-        },
       },
       include: {
         items: true,
@@ -335,23 +328,35 @@ export async function confirmPayment(
     throw new Error("Order is not awaiting payment");
   }
 
-  const pendingPayment = order.payments.find((payment) => payment.status === "PENDING");
-  if (!pendingPayment) {
-    throw new Error("No pending payment found for this order");
-  }
+  const pendingPayment = order.payments.find(
+    (payment) => payment.status === "PENDING"
+  );
 
   const now = new Date();
 
   const updatedOrder = await db.$transaction(async (tx) => {
-    await tx.payment.update({
-      where: { id: pendingPayment.id },
-      data: {
-        status: "CONFIRMED",
-        confirmedAt: now,
-        confirmedBy: options.confirmedBy,
-        reference: options.paymentReference ?? order.paymentReference ?? undefined,
-      },
-    });
+    const paymentData = {
+      status: "CONFIRMED" as const,
+      confirmedAt: now,
+      confirmedBy: options.confirmedBy,
+      reference: options.paymentReference ?? order.paymentReference ?? undefined,
+    };
+
+    if (pendingPayment) {
+      await tx.payment.update({
+        where: { id: pendingPayment.id },
+        data: paymentData,
+      });
+    } else {
+      await tx.payment.create({
+        data: {
+          orderId: order.id,
+          amount: order.total,
+          method: order.paymentMethod,
+          ...paymentData,
+        },
+      });
+    }
 
     return tx.order.update({
       where: { id: orderId },

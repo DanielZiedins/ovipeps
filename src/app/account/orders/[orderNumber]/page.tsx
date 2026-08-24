@@ -110,7 +110,9 @@ export default async function OrderDetailPage({ params }: OrderDetailPageProps) 
           <div className="space-y-6 lg:col-span-3">
             <div className="flex flex-wrap items-center gap-3">
               <Badge variant={getStatusVariant(order.status)}>
-                {order.status.replace(/_/g, " ")}
+                {order.status === "AWAITING_PAYMENT"
+                  ? "ORDER SUBMITTED"
+                  : order.status.replace(/_/g, " ")}
               </Badge>
               {order.paidAt ? (
                 <span className="text-sm text-muted-foreground">

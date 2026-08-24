@@ -375,7 +375,7 @@ export function CheckoutForm() {
                 <p className="text-xs font-bold uppercase tracking-wider text-teal">
                   Step 3
                 </p>
-                <CardTitle>Payment Method</CardTitle>
+                <CardTitle>No Online Payment</CardTitle>
               </div>
             </div>
           </CardHeader>
@@ -385,15 +385,17 @@ export function CheckoutForm() {
                 <Banknote className="h-4 w-4" />
               </div>
               <div>
-                <p className="font-bold text-foreground">Interac e-Transfer</p>
+                <p className="font-bold text-foreground">
+                  Submit your order without paying online
+                </p>
                 <p className="mt-1 text-sm text-muted-foreground">
-                  After placing your order, you&apos;ll receive instructions to
-                  send payment via Interac e-Transfer. Your order will be
-                  processed once payment is confirmed.
+                  OVIpeps does not collect card numbers or process payments on
+                  this website. Submit your order now and complete any payment
+                  separately using the instructions provided afterward.
                 </p>
                 <p className="mt-3 inline-flex items-center gap-1.5 text-xs font-semibold text-sky">
                   <FileCheck2 className="h-3.5 w-3.5" />
-                  Instructions appear immediately after ordering
+                  No payment information is required to submit
                 </p>
               </div>
             </div>
@@ -545,10 +547,10 @@ export function CheckoutForm() {
               {isSubmitting ? (
                 <>
                   <Loader2 className="h-4 w-4 animate-spin" />
-                  Placing Order...
+                  Submitting Order...
                 </>
               ) : (
-                "Place Order"
+                "Submit Order"
               )}
             </Button>
 

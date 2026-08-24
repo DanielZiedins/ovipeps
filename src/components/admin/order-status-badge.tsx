@@ -6,7 +6,7 @@ const statusConfig: Record<
   { label: string; className: string }
 > = {
   AWAITING_PAYMENT: {
-    label: "Awaiting Payment",
+    label: "Submitted — Awaiting External Payment",
     className: "border-warning/30 bg-warning/15 text-warning",
   },
   PAYMENT_RECEIVED: {

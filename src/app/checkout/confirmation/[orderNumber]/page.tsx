@@ -21,7 +21,7 @@ export async function generateMetadata({
   const { orderNumber } = await params;
   return {
     title: `Order ${orderNumber} | OVIpeps`,
-    description: "Order confirmation and payment instructions",
+    description: "Submitted order details and next steps",
   };
 }
 
@@ -109,11 +109,11 @@ export default async function OrderConfirmationPage({
           Order received
         </p>
         <h1 className="mt-2 bg-gradient-to-r from-navy-deep via-sky to-cyan bg-clip-text text-3xl font-bold tracking-tight text-transparent sm:text-4xl">
-          Awaiting Payment
+          Order Submitted
         </h1>
         <p className="mt-2 text-muted-foreground">
-          Your order has been received but is not yet paid or confirmed. Complete
-          your Interac e-Transfer to begin processing.
+          Your order was submitted successfully. No payment was collected or
+          processed on this website. Your order details are saved below.
         </p>
         <p className="mx-auto mt-3 w-fit rounded-full border border-sky/15 bg-sky/5 px-4 py-1.5 font-mono text-sm font-bold text-sky">
           {order.orderNumber}
@@ -125,12 +125,14 @@ export default async function OrderConfirmationPage({
           <CardHeader>
             <div className="flex items-center gap-2">
               <Banknote className="h-5 w-5 text-navy" />
-              <CardTitle>Interac e-Transfer Instructions</CardTitle>
+              <CardTitle>External Payment Instructions</CardTitle>
             </div>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="rounded-lg border border-border bg-card p-4">
-              <p className="text-sm text-muted-foreground">Send payment to</p>
+              <p className="text-sm text-muted-foreground">
+                When you are ready, send your external e-Transfer to
+              </p>
               <p className="mt-1 text-lg font-semibold text-navy">
                 {etransfer.email}
               </p>
@@ -149,6 +151,10 @@ export default async function OrderConfirmationPage({
             </div>
             <p className="text-sm leading-relaxed text-muted-foreground">
               {etransfer.instructions}
+            </p>
+            <p className="rounded-lg border border-sky/15 bg-white p-3 text-xs text-muted-foreground">
+              OVIpeps does not collect banking or card information and does not
+              process this payment through the website.
             </p>
           </CardContent>
         </Card>
@@ -190,7 +196,9 @@ export default async function OrderConfirmationPage({
               <div className="text-sm">
                 <p className="text-muted-foreground">Status</p>
                 <p className="font-medium capitalize">
-                  {order.status.replace(/_/g, " ").toLowerCase()}
+                  {order.status === "AWAITING_PAYMENT"
+                    ? "Order submitted"
+                    : order.status.replace(/_/g, " ").toLowerCase()}
                 </p>
               </div>
               <ul className="space-y-3 border-t border-border pt-4">

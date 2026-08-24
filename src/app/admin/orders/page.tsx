@@ -7,7 +7,7 @@ import { cn } from "@/lib/utils";
 
 const STATUS_FILTERS = [
   { value: "all", label: "All" },
-  { value: "AWAITING_PAYMENT", label: "Awaiting Payment" },
+  { value: "AWAITING_PAYMENT", label: "Submitted / Awaiting Payment" },
   { value: "PAYMENT_RECEIVED", label: "Payment Received" },
   { value: "PROCESSING", label: "Processing" },
   { value: "SHIPPED", label: "Shipped" },

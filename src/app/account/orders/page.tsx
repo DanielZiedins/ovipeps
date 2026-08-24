@@ -98,7 +98,9 @@ export default async function OrdersPage() {
                           </p>
                         </div>
                         <Badge variant={getStatusVariant(order.status)}>
-                          {order.status.replace(/_/g, " ")}
+                          {order.status === "AWAITING_PAYMENT"
+                            ? "ORDER SUBMITTED"
+                            : order.status.replace(/_/g, " ")}
                         </Badge>
                       </div>
                     </CardHeader>
