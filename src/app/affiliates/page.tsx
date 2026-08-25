@@ -78,7 +78,7 @@ export default function AffiliatesPage() {
       <PageHero
         eyebrow="Partner Program"
         title="Earn with OVIpeps"
-        description={`Partner with ${SITE_NAME} and earn commission by connecting qualified researchers with research-grade peptides backed by documentation and Canadian fulfillment. A USA affiliate program is now available.`}
+        description={`Partner with ${SITE_NAME} and earn commission by connecting qualified researchers with research-grade peptides backed by documentation and Canadian fulfillment.`}
       >
         <div className="flex flex-wrap gap-4">
           <Link
@@ -88,7 +88,6 @@ export default function AffiliatesPage() {
             Apply now
             <ArrowRight className="h-4 w-4" />
           </Link>
-          <a href="https://b12c76e8-6d99-4f94-8713-c4c733e01894.goaffpro.com/create-account?ref=IVO" target="_blank" rel="noopener noreferrer" className="inline-flex h-12 items-center gap-2 rounded-xl border border-sky/20 bg-white/80 px-6 text-sm font-semibold text-foreground backdrop-blur-sm transition-all hover:border-sky/40 hover:bg-white">Join USA program <ArrowRight className="h-4 w-4" /></a>
           <Link
             href="/affiliates/terms"
             className="inline-flex h-12 items-center rounded-xl border border-sky/20 bg-white/80 px-6 text-sm font-semibold text-foreground backdrop-blur-sm transition-all hover:border-sky/40 hover:bg-white"
