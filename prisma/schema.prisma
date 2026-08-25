@@ -36,7 +36,7 @@ enum UserRole {
 }
 
 model Address {
-  id         String  @id @default(cuid())
+  id         String   @id @default(cuid())
   userId     String
   label      String?
   firstName  String
@@ -46,13 +46,13 @@ model Address {
   city       String
   province   String
   postalCode String
-  country    String  @default("CA")
+  country    String   @default("CA")
   phone      String?
-  isDefault  Boolean @default(false)
+  isDefault  Boolean  @default(false)
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
 
-  user   User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 // ─── Products ─────────────────────────────────────────────────────────────────
@@ -90,22 +90,22 @@ enum ProductCategory {
 }
 
 model ProductVariant {
-  id            String   @id @default(cuid())
-  productId     String
-  name          String
-  sku           String   @unique
-  price         Float
+  id             String   @id @default(cuid())
+  productId      String
+  name           String
+  sku            String   @unique
+  price          Float
   compareAtPrice Float?
-  concentration String?
-  size          String?
-  stockQuantity Int      @default(0)
-  inStock       Boolean  @default(true)
-  isDefault     Boolean  @default(false)
-  sortOrder     Int      @default(0)
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  concentration  String?
+  size           String?
+  stockQuantity  Int      @default(0)
+  inStock        Boolean  @default(true)
+  isDefault      Boolean  @default(false)
+  sortOrder      Int      @default(0)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
 
-  product    Product        @relation(fields: [productId], references: [id], onDelete: Cascade)
+  product    Product     @relation(fields: [productId], references: [id], onDelete: Cascade)
   inventory  Inventory[]
   orderItems OrderItem[]
 }
@@ -121,15 +121,15 @@ model Inventory {
 }
 
 model ProductBatch {
-  id          String   @id @default(cuid())
-  productId   String
-  batchNumber String
-  lotNumber   String?
+  id             String    @id @default(cuid())
+  productId      String
+  batchNumber    String
+  lotNumber      String?
   manufacturedAt DateTime?
-  expiresAt   DateTime?
-  notes       String?
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  expiresAt      DateTime?
+  notes          String?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
 
   product      Product       @relation(fields: [productId], references: [id], onDelete: Cascade)
   coaDocuments CoaDocument[]
@@ -140,7 +140,7 @@ model ProductBatch {
 // ─── COA Documents ────────────────────────────────────────────────────────────
 
 model CoaDocument {
-  id              String   @id @default(cuid())
+  id              String    @id @default(cuid())
   productId       String
   batchId         String?
   batchNumber     String
@@ -150,9 +150,9 @@ model CoaDocument {
   purityResult    String?
   resultSummary   String?
   documentUrl     String?
-  published       Boolean  @default(false)
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
+  published       Boolean   @default(false)
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
 
   product Product       @relation(fields: [productId], references: [id], onDelete: Cascade)
   batch   ProductBatch? @relation(fields: [batchId], references: [id])
@@ -161,40 +161,40 @@ model CoaDocument {
 // ─── Orders & Payments ────────────────────────────────────────────────────────
 
 model Order {
-  id              String      @id @default(cuid())
-  orderNumber     String      @unique
-  userId          String?
-  email           String
-  status          OrderStatus @default(AWAITING_PAYMENT)
-  paymentMethod   PaymentMethod @default(INTERAC_E_TRANSFER)
-  subtotal        Float
-  discountAmount  Float       @default(0)
-  shippingAmount  Float       @default(0)
-  taxAmount       Float       @default(0)
-  total           Float
-  currency        String      @default("CAD")
-  discountCode    String?
-  affiliateCode   String?
-  affiliateId     String?
-  referralCode    String?
+  id               String        @id @default(cuid())
+  orderNumber      String        @unique
+  userId           String?
+  email            String
+  status           OrderStatus   @default(AWAITING_PAYMENT)
+  paymentMethod    PaymentMethod @default(INTERAC_E_TRANSFER)
+  subtotal         Float
+  discountAmount   Float         @default(0)
+  shippingAmount   Float         @default(0)
+  taxAmount        Float         @default(0)
+  total            Float
+  currency         String        @default("CAD")
+  discountCode     String?
+  affiliateCode    String?
+  affiliateId      String?
+  referralCode     String?
   paymentReference String?
-  shippingAddress Json?
-  billingAddress  Json?
-  notes           String?
-  trackingNumber  String?
-  trackingCarrier String?
-  paidAt          DateTime?
-  shippedAt       DateTime?
-  completedAt     DateTime?
-  cancelledAt     DateTime?
-  createdAt       DateTime    @default(now())
-  updatedAt       DateTime    @updatedAt
+  shippingAddress  Json?
+  billingAddress   Json?
+  notes            String?
+  trackingNumber   String?
+  trackingCarrier  String?
+  paidAt           DateTime?
+  shippedAt        DateTime?
+  completedAt      DateTime?
+  cancelledAt      DateTime?
+  createdAt        DateTime      @default(now())
+  updatedAt        DateTime      @updatedAt
 
-  user        User?                @relation(fields: [userId], references: [id])
-  items       OrderItem[]
-  payments    Payment[]
-  shipments   Shipment[]
-  commission  AffiliateCommission?
+  user       User?                @relation(fields: [userId], references: [id])
+  items      OrderItem[]
+  payments   Payment[]
+  shipments  Shipment[]
+  commission AffiliateCommission?
 }
 
 model OrderItem {
@@ -229,17 +229,17 @@ enum PaymentMethod {
 }
 
 model Payment {
-  id            String        @id @default(cuid())
-  orderId       String
-  amount        Float
-  method        PaymentMethod @default(INTERAC_E_TRANSFER)
-  status        PaymentStatus @default(PENDING)
-  reference     String?
-  confirmedAt   DateTime?
-  confirmedBy   String?
-  notes         String?
-  createdAt     DateTime      @default(now())
-  updatedAt     DateTime      @updatedAt
+  id          String        @id @default(cuid())
+  orderId     String
+  amount      Float
+  method      PaymentMethod @default(INTERAC_E_TRANSFER)
+  status      PaymentStatus @default(PENDING)
+  reference   String?
+  confirmedAt DateTime?
+  confirmedBy String?
+  notes       String?
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
 
   order Order @relation(fields: [orderId], references: [id], onDelete: Cascade)
 }
@@ -252,32 +252,32 @@ enum PaymentStatus {
 }
 
 model Shipment {
-  id             String   @id @default(cuid())
+  id             String    @id @default(cuid())
   orderId        String
   carrier        String?
   trackingNumber String?
-  status         String   @default("pending")
+  status         String    @default("pending")
   shippedAt      DateTime?
   deliveredAt    DateTime?
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
 
   order Order @relation(fields: [orderId], references: [id], onDelete: Cascade)
 }
 
 model DiscountCode {
-  id              String    @id @default(cuid())
-  code            String    @unique
-  type            DiscountType @default(PERCENTAGE)
-  value           Float
-  minOrderAmount  Float?
-  maxUses         Int?
-  usedCount       Int       @default(0)
-  active          Boolean   @default(true)
-  startsAt        DateTime?
-  expiresAt       DateTime?
-  createdAt       DateTime  @default(now())
-  updatedAt       DateTime  @updatedAt
+  id             String       @id @default(cuid())
+  code           String       @unique
+  type           DiscountType @default(PERCENTAGE)
+  value          Float
+  minOrderAmount Float?
+  maxUses        Int?
+  usedCount      Int          @default(0)
+  active         Boolean      @default(true)
+  startsAt       DateTime?
+  expiresAt      DateTime?
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
 }
 
 enum DiscountType {
@@ -288,21 +288,39 @@ enum DiscountType {
 // ─── Affiliates ───────────────────────────────────────────────────────────────
 
 model AffiliateApplication {
-  id              String                    @id @default(cuid())
-  userId          String?                   @unique
-  name            String
-  email           String
-  socialChannel   String?
-  website         String?
-  audienceSize    String?
-  primaryPlatform String?
-  promotionPlan   String?
-  status          AffiliateApplicationStatus @default(PENDING)
-  reviewedAt      DateTime?
-  reviewedBy      String?
-  reviewNotes     String?
-  createdAt       DateTime                  @default(now())
-  updatedAt       DateTime                  @updatedAt
+  id                     String                     @id @default(cuid())
+  userId                 String?                    @unique
+  name                   String
+  firstName              String?
+  lastName               String?
+  email                  String
+  phone                  String?
+  address1               String?
+  address2               String?
+  city                   String?
+  province               String?
+  postalCode             String?
+  country                String                     @default("Canada")
+  canadianResident       Boolean                    @default(false)
+  socialChannel          String?
+  socialProfiles         Json?
+  website                String?
+  audienceSize           String?
+  primaryPlatform        String?
+  promotionPlan          String?
+  whyAffiliate           String?
+  affiliateStrengths     String?
+  monthlyMinimumAccepted Boolean                    @default(false)
+  complianceAccepted     Boolean                    @default(false)
+  signedName             String?
+  signedAt               DateTime?
+  agreementVersion       String?
+  status                 AffiliateApplicationStatus @default(PENDING)
+  reviewedAt             DateTime?
+  reviewedBy             String?
+  reviewNotes            String?
+  createdAt              DateTime                   @default(now())
+  updatedAt              DateTime                   @updatedAt
 
   user User? @relation(fields: [userId], references: [id])
 }
@@ -317,7 +335,7 @@ model AffiliateAccount {
   id              String          @id @default(cuid())
   userId          String          @unique
   code            String          @unique
-  commissionRate  Float           @default(10)
+  commissionRate  Float           @default(15)
   status          AffiliateStatus @default(ACTIVE)
   totalClicks     Int             @default(0)
   totalOrders     Int             @default(0)
@@ -366,27 +384,27 @@ model AffiliateAttribution {
 }
 
 model AffiliateCommission {
-  id                  String            @id @default(cuid())
-  affiliateId         String
-  orderId             String            @unique
-  orderNumber         String
-  orderAmount         Float
+  id                   String           @id @default(cuid())
+  affiliateId          String
+  orderId              String           @unique
+  orderNumber          String
+  orderAmount          Float
   commissionableAmount Float
-  commissionRate      Float
-  commissionAmount    Float
-  status              CommissionStatus  @default(PENDING)
-  flagged             Boolean           @default(false)
-  flagReason          String?
-  notes               String?
-  approvedAt          DateTime?
-  lockedAt            DateTime?
-  paidAt              DateTime?
-  reversedAt          DateTime?
-  createdAt           DateTime          @default(now())
-  updatedAt           DateTime          @updatedAt
+  commissionRate       Float
+  commissionAmount     Float
+  status               CommissionStatus @default(PENDING)
+  flagged              Boolean          @default(false)
+  flagReason           String?
+  notes                String?
+  approvedAt           DateTime?
+  lockedAt             DateTime?
+  paidAt               DateTime?
+  reversedAt           DateTime?
+  createdAt            DateTime         @default(now())
+  updatedAt            DateTime         @updatedAt
 
-  affiliate  AffiliateAccount    @relation(fields: [affiliateId], references: [id])
-  order      Order               @relation(fields: [orderId], references: [id])
+  affiliate  AffiliateAccount     @relation(fields: [affiliateId], references: [id])
+  order      Order                @relation(fields: [orderId], references: [id])
   payoutItem AffiliatePayoutItem?
 }
 
@@ -399,16 +417,16 @@ enum CommissionStatus {
 }
 
 model AffiliatePayout {
-  id            String       @id @default(cuid())
-  periodMonth   Int
-  periodYear    Int
-  status        PayoutStatus @default(DRAFT)
-  totalAmount   Float        @default(0)
-  notes         String?
-  processedAt   DateTime?
-  processedBy   String?
-  createdAt     DateTime     @default(now())
-  updatedAt     DateTime     @updatedAt
+  id          String       @id @default(cuid())
+  periodMonth Int
+  periodYear  Int
+  status      PayoutStatus @default(DRAFT)
+  totalAmount Float        @default(0)
+  notes       String?
+  processedAt DateTime?
+  processedBy String?
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
 
   items AffiliatePayoutItem[]
 
@@ -422,24 +440,33 @@ enum PayoutStatus {
 }
 
 model AffiliatePayoutItem {
-  id              String       @id @default(cuid())
-  payoutId        String
-  affiliateId     String
-  commissionId    String?      @unique
-  grossSales      Float
-  reversals       Float        @default(0)
-  adjustments     Float        @default(0)
-  commissionOwed  Float
-  status          PayoutStatus @default(DRAFT)
+  id               String                 @id @default(cuid())
+  payoutId         String
+  affiliateId      String
+  commissionId     String?                @unique
+  commissionIds    Json?
+  grossSales       Float
+  reversals        Float                  @default(0)
+  adjustments      Float                  @default(0)
+  commissionOwed   Float
+  status           PayoutStatus           @default(DRAFT)
   paymentReference String?
-  paidAt          DateTime?
-  notes           String?
-  createdAt       DateTime     @default(now())
-  updatedAt       DateTime     @updatedAt
+  paymentMethod    AffiliatePayoutMethod?
+  paymentAmount    Float?
+  paidBy           String?
+  paidAt           DateTime?
+  notes            String?
+  createdAt        DateTime               @default(now())
+  updatedAt        DateTime               @updatedAt
 
-  payout     AffiliatePayout     @relation(fields: [payoutId], references: [id], onDelete: Cascade)
-  affiliate  AffiliateAccount    @relation(fields: [affiliateId], references: [id])
+  payout     AffiliatePayout      @relation(fields: [payoutId], references: [id], onDelete: Cascade)
+  affiliate  AffiliateAccount     @relation(fields: [affiliateId], references: [id])
   commission AffiliateCommission? @relation(fields: [commissionId], references: [id])
+}
+
+enum AffiliatePayoutMethod {
+  E_TRANSFER
+  CRYPTO
 }
 
 // ─── Content ──────────────────────────────────────────────────────────────────
@@ -506,16 +533,16 @@ enum FaqCategory {
 }
 
 model Announcement {
-  id        String   @id @default(cuid())
+  id        String    @id @default(cuid())
   message   String
   link      String?
   linkText  String?
-  active    Boolean  @default(true)
-  sortOrder Int      @default(0)
+  active    Boolean   @default(true)
+  sortOrder Int       @default(0)
   startsAt  DateTime?
   endsAt    DateTime?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
 }
 
 model SiteSetting {

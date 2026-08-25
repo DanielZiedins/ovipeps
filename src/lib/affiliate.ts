@@ -88,7 +88,10 @@ export async function createCommission(orderId: string) {
 
   if (!affiliate || affiliate.status !== "ACTIVE") return null;
 
-  const commissionableAmount = Math.max(0, order.subtotal - order.discountAmount);
+  // Promotional or discounted orders are not qualifying affiliate sales.
+  if (order.discountAmount > 0) return null;
+
+  const commissionableAmount = order.subtotal;
   const commissionRate = affiliate.commissionRate;
   const commissionAmount = Math.round(commissionableAmount * (commissionRate / 100) * 100) / 100;
 
@@ -102,7 +105,8 @@ export async function createCommission(orderId: string) {
         commissionableAmount,
         commissionRate,
         commissionAmount,
-        status: "PENDING",
+        status: "APPROVED",
+        approvedAt: new Date(),
       },
     });
 
@@ -110,6 +114,7 @@ export async function createCommission(orderId: string) {
       where: { id: affiliate.id },
       data: {
         totalOrders: { increment: 1 },
+        totalEarnings: { increment: commissionAmount },
         pendingEarnings: { increment: commissionAmount },
       },
     });

@@ -31,6 +31,7 @@ import {
   COMMISSION_STATUS_LABELS,
   type AffiliateDashboardData,
 } from "@/lib/affiliate-types";
+import { AffiliateCodeSetup } from "@/components/affiliates/code-setup";
 import { SITE_URL } from "@/lib/content";
 import { cn, formatCurrency, formatDate } from "@/lib/utils";
 import type { CommissionStatus } from "@/generated/prisma/enums";
@@ -151,7 +152,8 @@ function DataTable({
 }
 
 export function AffiliateDashboard({ data }: AffiliateDashboardProps) {
-  const referralUrl = `${SITE_URL}?r=${data.account.code}`;
+  const hasAffiliateCode = !data.account.code.startsWith("PENDING-");
+  const referralUrl = hasAffiliateCode ? `${SITE_URL}?r=${data.account.code}` : null;
   const pendingCommission = data.commissionByStatus.PENDING ?? 0;
   const approvedCommission = data.commissionByStatus.APPROVED ?? 0;
   const paidCommission = data.commissionByStatus.PAID ?? 0;
@@ -191,6 +193,7 @@ export function AffiliateDashboard({ data }: AffiliateDashboardProps) {
 
   return (
     <div className="space-y-8">
+      {!hasAffiliateCode ? <AffiliateCodeSetup /> : null}
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
         {overviewCards.map((card) => (
           <Card key={card.label}>
@@ -207,7 +210,7 @@ export function AffiliateDashboard({ data }: AffiliateDashboardProps) {
         ))}
       </div>
 
-      <Card>
+      {hasAffiliateCode && referralUrl ? <Card>
         <CardHeader>
           <CardTitle>Your referral link</CardTitle>
           <CardDescription>
@@ -219,7 +222,7 @@ export function AffiliateDashboard({ data }: AffiliateDashboardProps) {
           <CopyField label="Referral code" value={data.account.code} />
           <CopyField label="Referral URL" value={referralUrl} />
         </CardContent>
-      </Card>
+      </Card> : null}
 
       <div className="grid gap-6 lg:grid-cols-2">
         <Card>

@@ -3,6 +3,8 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { db } from "@/lib/db";
 import { formatCurrency, formatDate } from "@/lib/utils";
+import Link from "next/link";
+import { Button } from "@/components/ui/button";
 
 export default async function AdminAffiliatePayoutsPage() {
   const payouts = await db.affiliatePayout.findMany({
@@ -22,13 +24,12 @@ export default async function AdminAffiliatePayoutsPage() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-semibold tracking-tight text-navy-deep">
-          Affiliate Payouts
-        </h1>
-        <p className="mt-1 text-sm text-muted-foreground">
-          Generate monthly payout reports and mark commissions as paid.
-        </p>
+      <div className="flex flex-wrap items-start justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-semibold tracking-tight text-navy-deep">Affiliate Payouts</h1>
+          <p className="mt-1 text-sm text-muted-foreground">Generate monthly payout reports and record manual payments.</p>
+        </div>
+        <Link href="/api/admin/affiliates/payouts/export"><Button variant="outline">Download ongoing CSV ledger</Button></Link>
       </div>
 
       <Card>
@@ -71,7 +72,8 @@ export default async function AdminAffiliatePayoutsPage() {
                       <th className="pb-3 pr-4 font-medium">Gross Sales</th>
                       <th className="pb-3 pr-4 font-medium">Commission</th>
                       <th className="pb-3 pr-4 font-medium">Status</th>
-                      <th className="pb-3 font-medium" />
+                      <th className="pb-3 pr-4 font-medium">Payment record</th>
+                      <th className="pb-3 font-medium">Action</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -106,9 +108,19 @@ export default async function AdminAffiliatePayoutsPage() {
                             </p>
                           )}
                         </td>
+                        <td className="py-3 pr-4 text-xs text-muted-foreground">
+                          {item.status === "PAID" ? (
+                            <div className="space-y-1">
+                              <p>{item.paymentMethod === "E_TRANSFER" ? "e-Transfer" : "Crypto"}</p>
+                              <p>{formatCurrency(item.paymentAmount ?? item.commissionOwed)} sent</p>
+                              <p>By {item.paidBy ?? "—"}</p>
+                              {item.paymentReference ? <p>Ref: {item.paymentReference}</p> : null}
+                            </div>
+                          ) : "—"}
+                        </td>
                         <td className="py-3">
                           {item.status !== "PAID" && (
-                            <MarkPayoutPaidButton payoutItemId={item.id} />
+                            <MarkPayoutPaidButton payoutItemId={item.id} amount={item.commissionOwed} />
                           )}
                         </td>
                       </tr>

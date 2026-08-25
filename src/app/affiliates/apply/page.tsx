@@ -13,8 +13,10 @@ export const metadata: Metadata = {
 
 export default async function AffiliateApplyPage() {
   const session = await auth();
-  const defaultName = session?.user?.name ?? "";
   const defaultEmail = session?.user?.email ?? "";
+  const defaultName = session?.user?.name?.trim().split(/\s+/) ?? [];
+  const defaultFirstName = defaultName[0] ?? "";
+  const defaultLastName = defaultName.slice(1).join(" ");
 
   return (
     <>
@@ -47,7 +49,11 @@ export default async function AffiliateApplyPage() {
           </p>
           {session?.user ? (
             <div className="mt-6">
-              <AffiliateApplyForm defaultName={defaultName} defaultEmail={defaultEmail} />
+              <AffiliateApplyForm
+                defaultFirstName={defaultFirstName}
+                defaultLastName={defaultLastName}
+                defaultEmail={defaultEmail}
+              />
             </div>
           ) : (
             <div className="mt-6 rounded-xl border border-sky/20 bg-sky/5 p-6">

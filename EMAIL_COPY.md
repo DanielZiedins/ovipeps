@@ -27,13 +27,11 @@ Hi {{name}},
 
 Congratulations—your OVIpeps Partner Program application has been approved.
 
-- Referral code: **{{code}}**
 - Commission: **15%** on qualifying regularly priced sales
-- Referral URL: `https://www.ovipeps.ca/?ref={{code}}`
 
-Sign in with the account you created before applying to view your dashboard. There is no temporary password.
+Sign in with the account you created before applying, then choose your own unique affiliate code in your dashboard. Your referral link becomes active as soon as your code is saved. There is no temporary password.
 
-To maintain Affiliate Status, generate at least $500 CAD in qualifying sales per calendar month. Sale and promotional orders are excluded. Affiliates are responsible for applicable tax reporting and payment obligations.
+To maintain Affiliate Status, generate at least $300 CAD in qualifying sales per calendar month. Sale and promotional orders are excluded. Affiliates are responsible for applicable tax reporting and payment obligations.
 
 ## Password reset
 

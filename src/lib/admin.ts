@@ -65,15 +65,6 @@ export async function getDashboardMetrics() {
   };
 }
 
-function generateAffiliateCode(name: string) {
-  const base = name
-    .toUpperCase()
-    .replace(/[^A-Z0-9]/g, "")
-    .slice(0, 6);
-  const suffix = Math.random().toString(36).substring(2, 5).toUpperCase();
-  return `${base || "AFF"}${suffix}`;
-}
-
 export async function approveAffiliateApplication(
   applicationId: string,
   reviewedBy: string
@@ -118,15 +109,6 @@ export async function approveAffiliateApplication(
     where: { key: "affiliate_default_commission" },
   });
 
-  let code = generateAffiliateCode(application.name);
-  let attempts = 0;
-  while (attempts < 5) {
-    const collision = await db.affiliateAccount.findUnique({ where: { code } });
-    if (!collision) break;
-    code = generateAffiliateCode(application.name);
-    attempts++;
-  }
-
   const commissionRate = Number(defaultCommission?.value ?? 15);
 
   await db.$transaction(async (tx) => {
@@ -148,7 +130,7 @@ export async function approveAffiliateApplication(
     await tx.affiliateAccount.create({
       data: {
         userId: userId!,
-        code,
+        code: `PENDING-${userId!}`,
         commissionRate,
         status: "ACTIVE",
       },
@@ -160,7 +142,6 @@ export async function approveAffiliateApplication(
       application.email,
       emailTemplates.affiliateApproved({
         name: application.name,
-        code,
         commissionRate,
       })
     );
@@ -168,7 +149,7 @@ export async function approveAffiliateApplication(
     console.error("Affiliate approval email failed", error);
   }
 
-  return { code };
+  return { code: null };
 }
 
 export async function rejectAffiliateApplication(
@@ -219,7 +200,7 @@ export async function generateMonthlyPayout(year: number, month: number) {
 
   const commissions = await db.affiliateCommission.findMany({
     where: {
-      status: { in: ["PENDING", "APPROVED", "LOCKED"] },
+      status: { in: ["PENDING", "APPROVED"] },
       payoutItem: null,
       createdAt: { gte: start, lte: end },
     },
@@ -248,7 +229,7 @@ export async function generateMonthlyPayout(year: number, month: number) {
       commissionOwed: 0,
     };
     entry.commissions.push(commission);
-    entry.grossSales += commission.orderAmount;
+    entry.grossSales += commission.commissionableAmount;
     entry.commissionOwed += commission.commissionAmount;
     byAffiliate.set(commission.affiliateId, entry);
   }
@@ -269,18 +250,21 @@ export async function generateMonthlyPayout(year: number, month: number) {
     });
 
     for (const entry of byAffiliate.values()) {
-      for (const commission of entry.commissions) {
-        await tx.affiliatePayoutItem.create({
-          data: {
-            payoutId: created.id,
-            affiliateId: entry.affiliateId,
-            commissionId: commission.id,
-            grossSales: commission.orderAmount,
-            commissionOwed: commission.commissionAmount,
-            status: "DRAFT",
-          },
-        });
-      }
+      await tx.affiliatePayoutItem.create({
+        data: {
+          payoutId: created.id,
+          affiliateId: entry.affiliateId,
+          commissionIds: entry.commissions.map((commission) => commission.id),
+          grossSales: Math.round(entry.grossSales * 100) / 100,
+          commissionOwed: Math.round(entry.commissionOwed * 100) / 100,
+          status: "DRAFT",
+        },
+      });
+
+      await tx.affiliateCommission.updateMany({
+        where: { id: { in: entry.commissions.map((commission) => commission.id) } },
+        data: { status: "LOCKED", lockedAt: new Date() },
+      });
     }
 
     return created;
@@ -291,11 +275,16 @@ export async function generateMonthlyPayout(year: number, month: number) {
 
 export async function markPayoutItemPaid(
   payoutItemId: string,
-  paymentReference?: string
+  options: {
+    paymentMethod: "E_TRANSFER" | "CRYPTO";
+    paymentAmount: number;
+    paidBy: string;
+    paidAt: Date;
+    paymentReference?: string;
+  }
 ) {
   const item = await db.affiliatePayoutItem.findUnique({
     where: { id: payoutItemId },
-    include: { commission: true, affiliate: true },
   });
 
   if (!item) {
@@ -306,24 +295,31 @@ export async function markPayoutItemPaid(
     throw new Error("Payout item is already marked as paid");
   }
 
-  const now = new Date();
+  const commissionIds = Array.isArray(item.commissionIds)
+    ? item.commissionIds.filter((id): id is string => typeof id === "string")
+    : item.commissionId
+      ? [item.commissionId]
+      : [];
 
   await db.$transaction(async (tx) => {
     await tx.affiliatePayoutItem.update({
       where: { id: payoutItemId },
       data: {
         status: "PAID",
-        paidAt: now,
-        paymentReference: paymentReference?.trim() || undefined,
+        paidAt: options.paidAt,
+        paymentReference: options.paymentReference?.trim() || undefined,
+        paymentMethod: options.paymentMethod,
+        paymentAmount: options.paymentAmount,
+        paidBy: options.paidBy.trim(),
       },
     });
 
-    if (item.commission) {
-      await tx.affiliateCommission.update({
-        where: { id: item.commission.id },
+    if (commissionIds.length) {
+      await tx.affiliateCommission.updateMany({
+        where: { id: { in: commissionIds } },
         data: {
           status: "PAID",
-          paidAt: now,
+          paidAt: options.paidAt,
         },
       });
 
@@ -331,8 +327,18 @@ export async function markPayoutItemPaid(
         where: { id: item.affiliateId },
         data: {
           pendingEarnings: { decrement: item.commissionOwed },
-          paidEarnings: { increment: item.commissionOwed },
+          paidEarnings: { increment: options.paymentAmount },
         },
+      });
+    }
+
+    const remaining = await tx.affiliatePayoutItem.count({
+      where: { payoutId: item.payoutId, id: { not: item.id }, status: { not: "PAID" } },
+    });
+    if (remaining === 0) {
+      await tx.affiliatePayout.update({
+        where: { id: item.payoutId },
+        data: { status: "PAID", processedAt: options.paidAt, processedBy: options.paidBy.trim() },
       });
     }
   });

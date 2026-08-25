@@ -63,8 +63,8 @@ export default function AffiliateTermsPage() {
                     products.
                   </p>
                   <p>
-                    Approved partners receive dashboard access and a unique referral
-                    code. Commission rates are set at approval and may be updated
+                    Approved partners receive dashboard access and choose their own unique referral
+                    code after approval. Commission rates are set at approval and may be updated
                     with reasonable notice.
                   </p>
                 </>
@@ -85,13 +85,23 @@ export default function AffiliateTermsPage() {
                       Clearly state that OVIpeps products are for research use only
                     </li>
                     <li>
-                      Avoid medical, therapeutic, or human consumption claims
+                      Never promote, present, or imply that products are for human consumption
+                    </li>
+                    <li>
+                      Never make medical, therapeutic, performance, safety, efficacy,
+                      or other product claims
                     </li>
                     <li>
                       Use accurate product descriptions consistent with our website
                     </li>
                     <li>Disclose the affiliate relationship where required by law</li>
                   </ul>
+                  <p>
+                    Affiliates may share their own experience or beliefs only where
+                    doing so does not violate these restrictions, make a product
+                    claim, or suggest human consumption—especially in public or
+                    online content.
+                  </p>
                   <p>
                     Prohibited activities include spam, misleading advertising,
                     coupon abuse, self-referral, paid search bidding on OVIpeps
@@ -151,7 +161,7 @@ export default function AffiliateTermsPage() {
                     sales generated through their approved affiliate link or code.
                     Products or orders discounted as part of an OVIpeps promotion or
                     sale event are excluded; unless otherwise stated, regularly priced
-                    products are eligible. Affiliates must generate at least $500 CAD
+                    products are eligible. Affiliates must generate at least $300 CAD
                     in qualifying sales per calendar month to maintain Affiliate Status.
                   </p>
                   <p>
@@ -196,7 +206,9 @@ export default function AffiliateTermsPage() {
               title: "Termination",
               content: (
                 <p>
-                  Either party may terminate participation at any time. Upon
+                  Either party may terminate participation at any time. OVIpeps may
+                  suspend or terminate an affiliate arrangement at any time, without
+                  reason. Upon
                   termination, pending commissions for qualifying orders placed
                   before termination may still be paid according to these terms.
                   OVIpeps may withhold commissions associated with violations of

@@ -45,39 +45,36 @@ export default async function AdminAffiliateApplicationsPage() {
                 <Badge variant="warning">Pending</Badge>
               </div>
 
-              <div className="grid gap-3 text-sm sm:grid-cols-2">
-                {app.socialChannel && (
+              <div className="grid gap-3 text-sm sm:grid-cols-2 lg:grid-cols-3">
+                {app.phone && (
                   <div>
-                    <span className="text-muted-foreground">Social: </span>
-                    {app.socialChannel}
+                    <span className="text-muted-foreground">Phone: </span>{app.phone}
                   </div>
                 )}
+                {app.address1 && <div className="lg:col-span-2"><span className="text-muted-foreground">Address: </span>{[app.address1, app.address2, app.city, app.province, app.postalCode, app.country].filter(Boolean).join(", ")}</div>}
+                <div><span className="text-muted-foreground">Canadian resident: </span>{app.canadianResident ? "Confirmed" : "Not confirmed"}</div>
                 {app.website && (
                   <div>
                     <span className="text-muted-foreground">Website: </span>
                     {app.website}
                   </div>
                 )}
-                {app.audienceSize && (
-                  <div>
-                    <span className="text-muted-foreground">Audience: </span>
-                    {app.audienceSize}
-                  </div>
-                )}
-                {app.primaryPlatform && (
-                  <div>
-                    <span className="text-muted-foreground">Platform: </span>
-                    {app.primaryPlatform}
-                  </div>
-                )}
+                <div><span className="text-muted-foreground">$300 monthly commitment: </span>{app.monthlyMinimumAccepted ? "Accepted" : "Not accepted"}</div>
               </div>
 
-              {app.promotionPlan && (
-                <p className="text-sm text-muted-foreground">
-                  <span className="font-medium text-foreground">Plan: </span>
-                  {app.promotionPlan}
-                </p>
-              )}
+              {app.socialChannel && <div className="rounded-lg bg-muted/30 p-3 text-sm"><span className="font-medium text-foreground">Social profiles: </span>{app.socialChannel}</div>}
+
+              <div className="space-y-3 rounded-lg border border-border p-4 text-sm">
+                {app.whyAffiliate && <p><span className="font-medium text-foreground">Why they want to join: </span>{app.whyAffiliate}</p>}
+                {app.affiliateStrengths && <p><span className="font-medium text-foreground">Why they would be a good affiliate: </span>{app.affiliateStrengths}</p>}
+                {app.promotionPlan && <p><span className="font-medium text-foreground">Promotion plan: </span>{app.promotionPlan}</p>}
+              </div>
+
+              <div className="rounded-lg border border-success/20 bg-success/5 p-4 text-sm">
+                <p><span className="font-medium">Compliance agreement: </span>{app.complianceAccepted ? "Accepted" : "Not accepted"}</p>
+                <p className="mt-1"><span className="font-medium">Electronic signature: </span>{app.signedName ?? "—"}</p>
+                <p className="mt-1"><span className="font-medium">Signed: </span>{app.signedAt ? formatDate(app.signedAt) : "—"} {app.agreementVersion ? `(agreement ${app.agreementVersion})` : ""}</p>
+              </div>
 
               <p className="text-xs text-muted-foreground">
                 Applied {formatDate(app.createdAt)}

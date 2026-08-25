@@ -1,6 +1,15 @@
 import { NextResponse } from "next/server";
 import { markPayoutItemPaid } from "@/lib/admin";
 import { requireAdmin } from "@/lib/auth";
+import { z } from "zod";
+
+const paymentSchema = z.object({
+  paymentMethod: z.enum(["E_TRANSFER", "CRYPTO"]),
+  paymentAmount: z.number().positive(),
+  paidBy: z.string().trim().min(2),
+  paidAt: z.string().date(),
+  paymentReference: z.string().trim().optional(),
+});
 
 export async function POST(
   request: Request,
@@ -13,13 +22,14 @@ export async function POST(
 
   try {
     const { id } = await params;
-    const body = await request.json().catch(() => ({}));
-    const paymentReference =
-      typeof body.paymentReference === "string"
-        ? body.paymentReference
-        : undefined;
-
-    await markPayoutItemPaid(id, paymentReference);
+    const body = paymentSchema.parse(await request.json());
+    await markPayoutItemPaid(id, {
+      paymentMethod: body.paymentMethod,
+      paymentAmount: body.paymentAmount,
+      paidBy: body.paidBy,
+      paidAt: new Date(`${body.paidAt}T12:00:00.000Z`),
+      paymentReference: body.paymentReference,
+    });
 
     return NextResponse.json({ success: true });
   } catch (error) {

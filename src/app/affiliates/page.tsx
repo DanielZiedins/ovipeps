@@ -56,7 +56,7 @@ const steps = [
     step: "02",
     title: "Get approved",
     description:
-      "Our team reviews applications within 3–5 business days. Approved partners receive a unique referral code and dashboard access.",
+      "Our team reviews applications within 3–5 business days. Once approved, choose your unique code inside your dashboard.",
   },
   {
     step: "03",
@@ -68,7 +68,7 @@ const steps = [
     step: "04",
     title: "Earn commission",
     description:
-      "Commissions move from Pending to Approved after payment confirmation, then are paid monthly for qualifying earnings.",
+      "Commissions are approved after customer payment is confirmed, then paid manually each month with a complete payment record.",
   },
 ];
 

@@ -3,6 +3,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { db } from "@/lib/db";
 import { formatCurrency } from "@/lib/utils";
+import { AffiliateStatusActions } from "@/components/admin/affiliate-status-actions";
 
 export default async function AdminAffiliatesPage() {
   const affiliates = await db.affiliateAccount.findMany({
@@ -78,7 +79,7 @@ export default async function AdminAffiliatesPage() {
                       {affiliate.user.email}
                     </p>
                   </td>
-                  <td className="px-4 py-3 font-mono text-xs">{affiliate.code}</td>
+                  <td className="px-4 py-3 font-mono text-xs">{affiliate.code.startsWith("PENDING-") ? "Awaiting setup" : affiliate.code}</td>
                   <td className="px-4 py-3 tabular-nums">{affiliate.commissionRate}%</td>
                   <td className="px-4 py-3 tabular-nums">{affiliate.totalOrders}</td>
                   <td className="px-4 py-3 tabular-nums">
@@ -88,13 +89,10 @@ export default async function AdminAffiliatesPage() {
                     {formatCurrency(affiliate.paidEarnings)}
                   </td>
                   <td className="px-4 py-3">
-                    <Badge
-                      variant={
-                        affiliate.status === "ACTIVE" ? "success" : "default"
-                      }
-                    >
-                      {affiliate.status}
-                    </Badge>
+                    <div className="space-y-2">
+                      <Badge variant={affiliate.status === "ACTIVE" ? "success" : "default"}>{affiliate.status === "INACTIVE" ? "TERMINATED" : affiliate.status}</Badge>
+                      <AffiliateStatusActions affiliateId={affiliate.id} status={affiliate.status} />
+                    </div>
                   </td>
                 </tr>
               ))
