@@ -1,7 +1,15 @@
 import type { Prisma } from "@/generated/prisma/client";
 import { db } from "@/lib/db";
 import { syncAvailableProducts } from "@/lib/catalog-sync";
-import { attributeOrder, createCommission } from "@/lib/affiliate";
+import {
+  attributeOrder,
+  createCommission,
+  resolveActiveAffiliate,
+} from "@/lib/affiliate";
+import {
+  AFFILIATE_CUSTOMER_DISCOUNT_RATE,
+  roundMoney,
+} from "@/lib/affiliate-program";
 import {
   applyCatalogVariantPolicy,
   getAvailableVariant,
@@ -159,10 +167,29 @@ export async function createOrder(input: CreateOrderInput) {
     };
   });
 
-  const { discountAmount, discountCode } = await calculateDiscount(
+  const submittedAffiliateCode =
+    input.affiliateCode?.trim().toUpperCase() ||
+    input.referralCode?.trim().toUpperCase() ||
+    null;
+  const affiliate = submittedAffiliateCode
+    ? await resolveActiveAffiliate(submittedAffiliateCode)
+    : null;
+  if (submittedAffiliateCode && !affiliate) {
+    throw new Error("Affiliate code not found or inactive");
+  }
+
+  const promotion = await calculateDiscount(
     input.discountCode,
     subtotal
   );
+  const affiliateDiscountAmount = affiliate
+    ? roundMoney(subtotal * (AFFILIATE_CUSTOMER_DISCOUNT_RATE / 100))
+    : 0;
+  const discountAmount = Math.min(
+    subtotal,
+    roundMoney(promotion.discountAmount + affiliateDiscountAmount)
+  );
+  const discountCode = promotion.discountCode;
 
   const shippingAmount = FLAT_SHIPPING_RATE;
   const taxAmount = 0;
@@ -215,7 +242,7 @@ export async function createOrder(input: CreateOrderInput) {
         taxAmount,
         total,
         discountCode: discountCode ?? undefined,
-        affiliateCode: input.affiliateCode?.trim().toUpperCase() || undefined,
+        affiliateCode: affiliate?.code,
         referralCode: input.referralCode?.trim() || undefined,
         shippingAddress: input.shippingAddress as unknown as Prisma.InputJsonValue,
         items: {
@@ -239,9 +266,8 @@ export async function createOrder(input: CreateOrderInput) {
   });
 
   try {
-    const affiliateCode = input.affiliateCode ?? input.referralCode;
-    if (affiliateCode) {
-      await attributeOrder(order.id, affiliateCode);
+    if (affiliate) {
+      await attributeOrder(order.id, affiliate.code);
     }
   } catch (error) {
     // Attribution is secondary and must never turn a completed order into a

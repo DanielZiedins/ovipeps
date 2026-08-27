@@ -79,6 +79,7 @@ export async function POST(request: Request) {
       "Discount code is not yet active",
       "Discount code has expired",
       "Discount code has reached its usage limit",
+      "Affiliate code not found or inactive",
       "Product and variant mismatch",
       "One or more cart items are no longer available",
     ];

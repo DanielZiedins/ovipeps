@@ -170,7 +170,9 @@ export default async function AdminOrderDetailPage({
           </div>
           {order.discountAmount > 0 && (
             <div className="flex justify-between">
-              <span className="text-muted-foreground">Discount</span>
+              <span className="text-muted-foreground">
+                {order.affiliateCode ? "Discount (includes affiliate 5%)" : "Discount"}
+              </span>
               <span className="tabular-nums">
                 -{formatCurrency(order.discountAmount)}
               </span>

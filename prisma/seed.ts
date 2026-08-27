@@ -227,7 +227,7 @@ async function main() {
     { key: "etransfer_instructions", value: "Please send your Interac e-Transfer to ovipeps@gmail.com. Include your order number in the message field. Orders are processed once payment is confirmed." },
     { key: "shipping_threshold", value: "300" },
     { key: "free_shipping_message", value: "Free expedited shipping on orders over $300 CAD" },
-    { key: "affiliate_default_commission", value: "15" },
+    { key: "affiliate_default_commission", value: "10" },
     { key: "affiliate_attribution_days", value: "30" },
     { key: "commission_hold_days", value: "14" },
     { key: "site_name", value: "OVIpeps" },
@@ -386,7 +386,7 @@ Our [Peptide Calculator](/calculator) helps researchers calculate concentrations
     { question: "How do I pay for my order?", answer: "We accept Interac e-Transfer for Canadian orders. After placing your order, you will receive payment instructions with your unique order number to include in the transfer message.", category: "PAYMENT" as const },
     { question: "How long does shipping take?", answer: "Orders are typically processed within 1–2 business days after payment confirmation. Shipping times vary by province and carrier selection.", category: "SHIPPING" as const },
     { question: "Can I access COA documents?", answer: "Yes. Available Certificates of Analysis are published in our Lab Results library. Search by product name, batch number, or lot number.", category: "COA" as const },
-    { question: "How does the affiliate program work?", answer: "Approved partners receive a unique referral code and earn commission on qualifying orders. Commissions are calculated after payment confirmation and processed monthly.", category: "AFFILIATE" as const },
+    { question: "How does the affiliate program work?", answer: "Approved partners receive a unique referral code that gives customers 5% off. Affiliates earn 10%, 20%, or 25% based on combined monthly qualifying sales before shipping and taxes. Commissions are calculated after payment confirmation and processed monthly.", category: "AFFILIATE" as const },
   ];
 
   for (let i = 0; i < faqs.length; i++) {

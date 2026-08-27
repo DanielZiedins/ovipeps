@@ -1,6 +1,14 @@
 import { db } from "@/lib/db";
 import type { AffiliateDashboardData } from "@/lib/affiliate-types";
 import type { CommissionStatus } from "@/generated/prisma/enums";
+import { reconcileAffiliateMinimums } from "@/lib/affiliate";
+import {
+  AFFILIATE_MONTHLY_MINIMUM,
+  getAffiliateCommissionRate,
+  getNextAffiliateTier,
+  getUtcMonthBounds,
+  roundMoney,
+} from "@/lib/affiliate-program";
 
 function groupByDay<T extends { createdAt: Date }>(
   items: T[],
@@ -21,6 +29,12 @@ function groupByDay<T extends { createdAt: Date }>(
 export async function getAffiliateDashboardData(
   userId: string
 ): Promise<AffiliateDashboardData | null> {
+  const initialAccount = await db.affiliateAccount.findUnique({
+    where: { userId },
+    select: { id: true },
+  });
+  if (initialAccount) await reconcileAffiliateMinimums(initialAccount.id);
+
   const account = await db.affiliateAccount.findUnique({
     where: { userId },
     include: {
@@ -48,8 +62,9 @@ export async function getAffiliateDashboardData(
 
   const thirtyDaysAgo = new Date();
   thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+  const currentMonthBounds = getUtcMonthBounds(new Date());
 
-  const [commissionTotals, recentClicks, recentCommissions] = await Promise.all([
+  const [commissionTotals, recentClicks, recentCommissions, currentMonthCommissions] = await Promise.all([
     db.affiliateCommission.groupBy({
       by: ["status"],
       where: { affiliateId: account.id },
@@ -63,6 +78,14 @@ export async function getAffiliateDashboardData(
       where: { affiliateId: account.id, createdAt: { gte: thirtyDaysAgo } },
       select: { createdAt: true, commissionAmount: true },
     }),
+    db.affiliateCommission.findMany({
+      where: {
+        affiliateId: account.id,
+        createdAt: { gte: currentMonthBounds.start, lt: currentMonthBounds.end },
+        status: { not: "REVERSED" },
+      },
+      select: { commissionableAmount: true },
+    }),
   ]);
 
   const commissionByStatus = Object.fromEntries(
@@ -73,6 +96,11 @@ export async function getAffiliateDashboardData(
     account.totalClicks > 0
       ? Math.round((account.totalOrders / account.totalClicks) * 1000) / 10
       : 0;
+  const qualifyingSales = roundMoney(
+    currentMonthCommissions.reduce((sum, row) => sum + row.commissionableAmount, 0)
+  );
+  const currentCommissionRate = getAffiliateCommissionRate(qualifyingSales);
+  const nextTier = getNextAffiliateTier(qualifyingSales);
 
   return {
     account: {
@@ -85,6 +113,19 @@ export async function getAffiliateDashboardData(
       totalEarnings: account.totalEarnings,
       paidEarnings: account.paidEarnings,
       pendingEarnings: account.pendingEarnings,
+      missedMinimumMonths: account.missedMinimumMonths,
+      frozenAt: account.frozenAt?.toISOString() ?? null,
+    },
+    currentMonth: {
+      qualifyingSales,
+      commissionRate: currentCommissionRate,
+      minimumMet: qualifyingSales >= AFFILIATE_MONTHLY_MINIMUM,
+      amountToMinimum: roundMoney(Math.max(0, AFFILIATE_MONTHLY_MINIMUM - qualifyingSales)),
+      nextTierThreshold: nextTier?.threshold ?? null,
+      nextTierRate: nextTier?.rate ?? null,
+      amountToNextTier: nextTier
+        ? roundMoney(Math.max(0, nextTier.threshold - qualifyingSales))
+        : 0,
     },
     conversionRate,
     commissionByStatus,
@@ -107,6 +148,8 @@ export async function getAffiliateDashboardData(
       id: row.id,
       orderNumber: row.orderNumber,
       orderAmount: row.orderAmount,
+      commissionableAmount: row.commissionableAmount,
+      commissionRate: row.commissionRate,
       commissionAmount: row.commissionAmount,
       status: row.status,
       flagged: row.flagged,

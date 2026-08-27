@@ -76,6 +76,9 @@ export function CheckoutForm() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [hydrated, setHydrated] = useState(false);
+  const [affiliateCodeState, setAffiliateCodeState] = useState<
+    "idle" | "checking" | "valid" | "invalid"
+  >("idle");
 
   const items = useCartStore((s) => s.items);
   const discountCode = useCartStore((s) => s.discountCode);
@@ -87,6 +90,7 @@ export function CheckoutForm() {
     register,
     handleSubmit,
     setValue,
+    watch,
     formState: { errors },
   } = useForm<CheckoutFormValues>({
     resolver: zodResolver(checkoutSchema),
@@ -106,12 +110,47 @@ export function CheckoutForm() {
     }
   }, [affiliateCode, setValue]);
 
+  const enteredAffiliateCode = watch("affiliateCode");
+
+  useEffect(() => {
+    const code = enteredAffiliateCode?.trim();
+    if (!code) {
+      setAffiliateCodeState("idle");
+      return;
+    }
+
+    const controller = new AbortController();
+    const timer = window.setTimeout(async () => {
+      setAffiliateCodeState("checking");
+      try {
+        const response = await fetch(
+          `/api/affiliates/validate?code=${encodeURIComponent(code)}`,
+          { signal: controller.signal }
+        );
+        setAffiliateCodeState(response.ok ? "valid" : "invalid");
+      } catch (error) {
+        if (!(error instanceof DOMException && error.name === "AbortError")) {
+          setAffiliateCodeState("invalid");
+        }
+      }
+    }, 300);
+
+    return () => {
+      window.clearTimeout(timer);
+      controller.abort();
+    };
+  }, [enteredAffiliateCode]);
+
   const totals = useMemo(() => {
     const cartSubtotal = subtotal();
+    const affiliateDiscountAmount =
+      affiliateCodeState === "valid"
+        ? Math.round(cartSubtotal * 0.05 * 100) / 100
+        : 0;
     const shippingAmount = FLAT_SHIPPING_RATE;
-    const total = cartSubtotal + shippingAmount;
-    return { cartSubtotal, shippingAmount, total };
-  }, [items, subtotal]);
+    const total = cartSubtotal - affiliateDiscountAmount + shippingAmount;
+    return { cartSubtotal, affiliateDiscountAmount, shippingAmount, total };
+  }, [affiliateCodeState, items, subtotal]);
 
   const onSubmit = async (values: CheckoutFormValues) => {
     if (!items.length) {
@@ -121,6 +160,12 @@ export function CheckoutForm() {
 
     setIsSubmitting(true);
     setSubmitError(null);
+
+    if (values.affiliateCode?.trim() && affiliateCodeState === "invalid") {
+      setSubmitError("Affiliate code not found or inactive.");
+      setIsSubmitting(false);
+      return;
+    }
 
     try {
       const response = await fetch("/api/orders", {
@@ -410,7 +455,15 @@ export function CheckoutForm() {
             <Input
               label="Affiliate / referral code"
               placeholder="Enter code"
-              hint="If you were referred by a partner, enter their code here."
+              hint={
+                affiliateCodeState === "valid"
+                  ? "Code applied — you receive 5% off the merchandise subtotal."
+                  : affiliateCodeState === "checking"
+                    ? "Checking affiliate code…"
+                    : affiliateCodeState === "invalid"
+                      ? "That affiliate code was not found or is inactive."
+                      : "Enter an active affiliate code to receive 5% off your order."
+              }
               error={errors.affiliateCode?.message}
               {...register("affiliateCode")}
             />
@@ -509,6 +562,12 @@ export function CheckoutForm() {
                 <span className="text-muted-foreground">Subtotal</span>
                 <span>{formatCurrency(totals.cartSubtotal)}</span>
               </div>
+              {totals.affiliateDiscountAmount > 0 ? (
+                <div className="flex justify-between text-success">
+                  <span>Affiliate discount (5%)</span>
+                  <span>-{formatCurrency(totals.affiliateDiscountAmount)}</span>
+                </div>
+              ) : null}
               <div className="flex justify-between">
                 <span className="text-muted-foreground">Shipping</span>
                 <span>

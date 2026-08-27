@@ -332,24 +332,48 @@ enum AffiliateApplicationStatus {
 }
 
 model AffiliateAccount {
-  id              String          @id @default(cuid())
-  userId          String          @unique
-  code            String          @unique
-  commissionRate  Float           @default(15)
-  status          AffiliateStatus @default(ACTIVE)
-  totalClicks     Int             @default(0)
-  totalOrders     Int             @default(0)
-  totalEarnings   Float           @default(0)
-  paidEarnings    Float           @default(0)
-  pendingEarnings Float           @default(0)
-  createdAt       DateTime        @default(now())
-  updatedAt       DateTime        @updatedAt
+  id                       String          @id @default(cuid())
+  userId                   String          @unique
+  code                     String          @unique
+  commissionRate           Float           @default(10)
+  status                   AffiliateStatus @default(ACTIVE)
+  totalClicks              Int             @default(0)
+  totalOrders              Int             @default(0)
+  totalEarnings            Float           @default(0)
+  paidEarnings             Float           @default(0)
+  pendingEarnings          Float           @default(0)
+  missedMinimumMonths      Int             @default(0)
+  minimumTrackingStartedAt DateTime        @default(now())
+  frozenAt                 DateTime?
+  createdAt                DateTime        @default(now())
+  updatedAt                DateTime        @updatedAt
 
   user         User                   @relation(fields: [userId], references: [id], onDelete: Cascade)
   clicks       AffiliateClick[]
   attributions AffiliateAttribution[]
   commissions  AffiliateCommission[]
   payouts      AffiliatePayoutItem[]
+  monthlyPerformance AffiliateMonthlyPerformance[]
+}
+
+model AffiliateMonthlyPerformance {
+  id                 String   @id @default(cuid())
+  affiliateId        String
+  periodYear         Int
+  periodMonth        Int
+  qualifyingSales    Float    @default(0)
+  commissionRate     Float    @default(10)
+  commissionOwed     Float    @default(0)
+  minimumMet         Boolean  @default(false)
+  missedMinimumCount Int      @default(0)
+  evaluatedAt        DateTime @default(now())
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+
+  affiliate AffiliateAccount @relation(fields: [affiliateId], references: [id], onDelete: Cascade)
+
+  @@unique([affiliateId, periodYear, periodMonth])
+  @@index([periodYear, periodMonth])
 }
 
 enum AffiliateStatus {
@@ -446,6 +470,7 @@ model AffiliatePayoutItem {
   commissionId     String?                @unique
   commissionIds    Json?
   grossSales       Float
+  commissionRate   Float                  @default(10)
   reversals        Float                  @default(0)
   adjustments      Float                  @default(0)
   commissionOwed   Float

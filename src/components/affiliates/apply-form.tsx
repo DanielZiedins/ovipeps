@@ -147,14 +147,15 @@ export function AffiliateApplyForm({ defaultEmail = "", defaultFirstName = "", d
         <Textarea label="Why do you want to become an OVIpeps affiliate?" rows={4} error={errors.whyAffiliate?.message} {...register("whyAffiliate")} />
         <Textarea label="What makes you believe you would be a good affiliate?" rows={4} error={errors.affiliateStrengths?.message} {...register("affiliateStrengths")} />
         <Textarea label="How will you promote OVIpeps?" rows={4} error={errors.promotionPlan?.message} {...register("promotionPlan")} />
-        <AgreementCheckbox id="monthly-minimum" label="Yes, I can commit to generating at least $300 CAD in qualifying sales each calendar month to maintain affiliate status." error={errors.monthlyMinimumAccepted?.message} registration={register("monthlyMinimumAccepted")} />
+        <AgreementCheckbox id="monthly-minimum" label="Yes, I can commit to generating at least $300 CAD in qualifying sales each calendar month. I understand that missing this minimum three times—not necessarily consecutively—will freeze my affiliate account pending OVIpeps review." error={errors.monthlyMinimumAccepted?.message} registration={register("monthlyMinimumAccepted")} />
       </section>
 
       <section className="space-y-5 border-t border-border pt-8">
         <div className="rounded-xl border border-warning/30 bg-warning/5 p-5 text-sm leading-relaxed">
           <h3 className="font-semibold text-navy-deep">Affiliate acknowledgement and agreement</h3>
+          <p className="mt-3">I understand that my monthly commission rate is 10% on combined qualifying sales up to $1,499 CAD, 20% from $1,500 through $4,999 CAD, and 25% at $5,000 CAD or more. Customers using my active affiliate code receive an automatic 5% discount. Commissions are calculated after discounts and before shipping and taxes.</p>
           <p className="mt-3">OVIpeps products are sold strictly for research use and are not for human consumption. I agree that I will not promote, present, or imply that any OVIpeps product is for human consumption, especially in public or online content. I will not make medical, therapeutic, performance, safety, efficacy, or other product claims.</p>
-          <p className="mt-3">I may share my own experience or beliefs only when doing so does not violate these restrictions, does not make a product claim, and does not suggest human consumption. I understand that OVIpeps may suspend or terminate the affiliate arrangement at any time, without reason, and that commission is paid manually according to the Affiliate Program Terms.</p>
+          <p className="mt-3">I may share my own experience or beliefs only when doing so does not violate these restrictions, does not make a product claim, and does not suggest human consumption. I understand that OVIpeps may freeze, suspend, or terminate the affiliate arrangement at any time, without reason, and that commission is paid manually according to the Affiliate Program Terms.</p>
         </div>
         <AgreementCheckbox id="compliance-agreement" label="I have read, understand, acknowledge, and agree to the Affiliate Program Terms and the restrictions above." error={errors.complianceAccepted?.message} registration={register("complianceAccepted")} />
         <div className="grid gap-5 sm:grid-cols-2">

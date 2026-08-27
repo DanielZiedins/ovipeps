@@ -24,7 +24,7 @@ export function AffiliateStatusActions({ affiliateId, status }: { affiliateId: s
     <div>
       <select aria-label="Affiliate status" value={status} disabled={loading} onChange={(event) => updateStatus(event.target.value)} className="h-9 rounded-md border border-border bg-white px-2 text-xs">
         <option value="ACTIVE">Active</option>
-        <option value="SUSPENDED">Suspended</option>
+        <option value="SUSPENDED">Frozen</option>
         <option value="INACTIVE">Terminated</option>
       </select>
       {error ? <p className="mt-1 max-w-36 text-xs text-error">{error}</p> : null}

@@ -1,4 +1,12 @@
 import { db } from "@/lib/db";
+import {
+  AFFILIATE_MAX_MISSED_MONTHS,
+  AFFILIATE_MONTHLY_MINIMUM,
+  getAffiliateCommissionRate,
+  getPeriodBounds,
+  getUtcMonthBounds,
+  roundMoney,
+} from "@/lib/affiliate-program";
 
 interface ClickMeta {
   ipAddress?: string;
@@ -7,14 +15,189 @@ interface ClickMeta {
   landingPage?: string;
 }
 
-export async function trackAffiliateClick(code: string, meta: ClickMeta = {}) {
-  const normalizedCode = code.trim().toUpperCase();
+function nextUtcMonth(date: Date) {
+  return new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth() + 1, 1));
+}
+
+export async function evaluateAffiliateMonth(
+  affiliateId: string,
+  year: number,
+  month: number
+) {
+  const affiliate = await db.affiliateAccount.findUnique({ where: { id: affiliateId } });
+  if (!affiliate || affiliate.status === "INACTIVE") return null;
+
+  const { start, end } = getPeriodBounds(year, month);
+  const currentMonthStart = getUtcMonthBounds(new Date()).start;
+  const firstFullMonth = nextUtcMonth(affiliate.minimumTrackingStartedAt);
+  if (start < firstFullMonth || end > currentMonthStart) return null;
+
+  const existing = await db.affiliateMonthlyPerformance.findUnique({
+    where: {
+      affiliateId_periodYear_periodMonth: { affiliateId, periodYear: year, periodMonth: month },
+    },
+  });
+  if (existing) return existing;
+
+  const commissions = await db.affiliateCommission.findMany({
+    where: {
+      affiliateId,
+      createdAt: { gte: start, lt: end },
+      status: { not: "REVERSED" },
+    },
+    select: { commissionableAmount: true, commissionAmount: true },
+  });
+  const qualifyingSales = roundMoney(
+    commissions.reduce((sum, commission) => sum + commission.commissionableAmount, 0)
+  );
+  const commissionRate = getAffiliateCommissionRate(qualifyingSales);
+  const commissionOwed = roundMoney(
+    commissions.reduce((sum, commission) => sum + commission.commissionAmount, 0)
+  );
+  const minimumMet = qualifyingSales >= AFFILIATE_MONTHLY_MINIMUM;
+
+  return db.$transaction(async (tx) => {
+    const alreadyEvaluated = await tx.affiliateMonthlyPerformance.findUnique({
+      where: {
+        affiliateId_periodYear_periodMonth: { affiliateId, periodYear: year, periodMonth: month },
+      },
+    });
+    if (alreadyEvaluated) return alreadyEvaluated;
+
+    const created = await tx.affiliateMonthlyPerformance.create({
+      data: {
+        affiliateId,
+        periodYear: year,
+        periodMonth: month,
+        qualifyingSales,
+        commissionRate,
+        commissionOwed,
+        minimumMet,
+        missedMinimumCount: 0,
+        evaluatedAt: new Date(),
+      },
+    });
+
+    const missedMinimumMonths = await tx.affiliateMonthlyPerformance.count({
+      where: { affiliateId, minimumMet: false },
+    });
+    const shouldFreeze =
+      !minimumMet &&
+      missedMinimumMonths >= AFFILIATE_MAX_MISSED_MONTHS &&
+      affiliate.status === "ACTIVE";
+
+    await tx.affiliateMonthlyPerformance.update({
+      where: { id: created.id },
+      data: { missedMinimumCount: missedMinimumMonths },
+    });
+    await tx.affiliateAccount.update({
+      where: { id: affiliateId },
+      data: {
+        missedMinimumMonths,
+        commissionRate,
+        ...(shouldFreeze ? { status: "SUSPENDED" as const, frozenAt: new Date() } : {}),
+      },
+    });
+
+    return { ...created, missedMinimumCount: missedMinimumMonths };
+  });
+}
+
+export async function reconcileAffiliateMinimums(affiliateId: string) {
+  let affiliate = await db.affiliateAccount.findUnique({ where: { id: affiliateId } });
+  if (!affiliate || affiliate.status !== "ACTIVE") return affiliate;
+
+  const currentMonthStart = getUtcMonthBounds(new Date()).start;
+  for (
+    let cursor = nextUtcMonth(affiliate.minimumTrackingStartedAt);
+    cursor < currentMonthStart;
+    cursor = nextUtcMonth(cursor)
+  ) {
+    await evaluateAffiliateMonth(
+      affiliate.id,
+      cursor.getUTCFullYear(),
+      cursor.getUTCMonth() + 1
+    );
+    affiliate = await db.affiliateAccount.findUnique({ where: { id: affiliateId } });
+    if (!affiliate || affiliate.status !== "ACTIVE") break;
+  }
+
+  await refreshAffiliateCurrentMonthTier(affiliateId);
+  return db.affiliateAccount.findUnique({ where: { id: affiliateId } });
+}
+
+export async function refreshAffiliateCurrentMonthTier(affiliateId: string) {
+  const { start, end } = getUtcMonthBounds(new Date());
+  const commissions = await db.affiliateCommission.findMany({
+    where: {
+      affiliateId,
+      createdAt: { gte: start, lt: end },
+      status: { in: ["PENDING", "APPROVED"] },
+    },
+  });
+  const monthlySales = roundMoney(
+    commissions.reduce((sum, row) => sum + row.commissionableAmount, 0)
+  );
+  const commissionRate = getAffiliateCommissionRate(monthlySales);
+  const oldTotal = roundMoney(
+    commissions.reduce((sum, row) => sum + row.commissionAmount, 0)
+  );
+  const newTotal = roundMoney(
+    commissions.reduce(
+      (sum, row) =>
+        sum + roundMoney(row.commissionableAmount * (commissionRate / 100)),
+      0
+    )
+  );
+  const earningsDelta = roundMoney(newTotal - oldTotal);
+
+  await db.$transaction(async (tx) => {
+    for (const commission of commissions) {
+      await tx.affiliateCommission.update({
+        where: { id: commission.id },
+        data: {
+          commissionRate,
+          commissionAmount: roundMoney(
+            commission.commissionableAmount * (commissionRate / 100)
+          ),
+        },
+      });
+    }
+    await tx.affiliateAccount.update({
+      where: { id: affiliateId },
+      data: {
+        commissionRate,
+        totalEarnings: { increment: earningsDelta },
+        pendingEarnings: { increment: earningsDelta },
+      },
+    });
+  });
+}
+
+export async function reconcileAllAffiliateMinimums() {
+  const affiliates = await db.affiliateAccount.findMany({
+    where: { status: "ACTIVE" },
+    select: { id: true },
+  });
+  for (const affiliate of affiliates) {
+    await reconcileAffiliateMinimums(affiliate.id);
+  }
+}
+
+export async function resolveActiveAffiliate(code: string | null | undefined) {
+  const normalizedCode = code?.trim().toUpperCase();
   if (!normalizedCode) return null;
 
-  const affiliate = await db.affiliateAccount.findFirst({
-    where: { code: normalizedCode, status: "ACTIVE" },
-  });
+  let affiliate = await db.affiliateAccount.findUnique({ where: { code: normalizedCode } });
+  if (!affiliate || affiliate.status !== "ACTIVE") return null;
 
+  await reconcileAffiliateMinimums(affiliate.id);
+  affiliate = await db.affiliateAccount.findUnique({ where: { id: affiliate.id } });
+  return affiliate?.status === "ACTIVE" ? affiliate : null;
+}
+
+export async function trackAffiliateClick(code: string, meta: ClickMeta = {}) {
+  const affiliate = await resolveActiveAffiliate(code);
   if (!affiliate) return null;
 
   const [click] = await db.$transaction([
@@ -37,13 +220,7 @@ export async function trackAffiliateClick(code: string, meta: ClickMeta = {}) {
 }
 
 export async function attributeOrder(orderId: string, affiliateCode: string | null | undefined) {
-  if (!affiliateCode?.trim()) return null;
-
-  const code = affiliateCode.trim().toUpperCase();
-  const affiliate = await db.affiliateAccount.findFirst({
-    where: { code, status: "ACTIVE" },
-  });
-
+  const affiliate = await resolveActiveAffiliate(affiliateCode);
   if (!affiliate) return null;
 
   const attributionDaysSetting = await db.siteSetting.findUnique({
@@ -56,15 +233,12 @@ export async function attributeOrder(orderId: string, affiliateCode: string | nu
   await db.$transaction([
     db.order.update({
       where: { id: orderId },
-      data: {
-        affiliateCode: code,
-        affiliateId: affiliate.id,
-      },
+      data: { affiliateCode: affiliate.code, affiliateId: affiliate.id },
     }),
     db.affiliateAttribution.create({
       data: {
         affiliateId: affiliate.id,
-        code,
+        code: affiliate.code,
         expiresAt,
         converted: true,
       },
@@ -82,20 +256,53 @@ export async function createCommission(orderId: string) {
 
   if (!order?.affiliateId || order.commission) return null;
 
-  const affiliate = await db.affiliateAccount.findUnique({
-    where: { id: order.affiliateId },
-  });
-
+  const affiliate = await reconcileAffiliateMinimums(order.affiliateId);
   if (!affiliate || affiliate.status !== "ACTIVE") return null;
 
-  // Promotional or discounted orders are not qualifying affiliate sales.
-  if (order.discountAmount > 0) return null;
+  const commissionableAmount = roundMoney(
+    Math.max(0, order.subtotal - order.discountAmount)
+  );
+  if (commissionableAmount <= 0) return null;
 
-  const commissionableAmount = order.subtotal;
-  const commissionRate = affiliate.commissionRate;
-  const commissionAmount = Math.round(commissionableAmount * (commissionRate / 100) * 100) / 100;
+  const commissionDate = order.paidAt ?? new Date();
+  const { start, end } = getUtcMonthBounds(commissionDate);
+  const existingCommissions = await db.affiliateCommission.findMany({
+    where: {
+      affiliateId: affiliate.id,
+      createdAt: { gte: start, lt: end },
+      status: { not: "REVERSED" },
+    },
+  });
+  const combinedMonthlySales = roundMoney(
+    commissionableAmount +
+      existingCommissions.reduce((sum, row) => sum + row.commissionableAmount, 0)
+  );
+  const commissionRate = getAffiliateCommissionRate(combinedMonthlySales);
+  const existingOldTotal = roundMoney(
+    existingCommissions.reduce((sum, row) => sum + row.commissionAmount, 0)
+  );
+  const existingNewTotal = roundMoney(
+    existingCommissions.reduce(
+      (sum, row) => sum + roundMoney(row.commissionableAmount * (commissionRate / 100)),
+      0
+    )
+  );
+  const commissionAmount = roundMoney(commissionableAmount * (commissionRate / 100));
+  const earningsDelta = roundMoney(existingNewTotal + commissionAmount - existingOldTotal);
 
-  const commission = await db.$transaction(async (tx) => {
+  return db.$transaction(async (tx) => {
+    for (const existing of existingCommissions) {
+      await tx.affiliateCommission.update({
+        where: { id: existing.id },
+        data: {
+          commissionRate,
+          commissionAmount: roundMoney(
+            existing.commissionableAmount * (commissionRate / 100)
+          ),
+        },
+      });
+    }
+
     const created = await tx.affiliateCommission.create({
       data: {
         affiliateId: affiliate.id,
@@ -107,20 +314,20 @@ export async function createCommission(orderId: string) {
         commissionAmount,
         status: "APPROVED",
         approvedAt: new Date(),
+        createdAt: commissionDate,
       },
     });
 
     await tx.affiliateAccount.update({
       where: { id: affiliate.id },
       data: {
+        commissionRate,
         totalOrders: { increment: 1 },
-        totalEarnings: { increment: commissionAmount },
-        pendingEarnings: { increment: commissionAmount },
+        totalEarnings: { increment: earningsDelta },
+        pendingEarnings: { increment: earningsDelta },
       },
     });
 
     return created;
   });
-
-  return commission;
 }

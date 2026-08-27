@@ -214,7 +214,7 @@ export const FALLBACK_FAQS: FallbackFaq[] = [
   {
     question: "How does the partner program work?",
     answer:
-      "Approved partners receive a referral code and may earn commission on qualifying paid orders. Applications, attribution terms, approval rules, and payout conditions are explained on the Partner Program pages.",
+      "Approved partners receive a referral code that gives customers 5% off. Affiliates earn 10%, 20%, or 25% based on combined monthly qualifying sales before shipping and taxes. Full rules are explained on the Partner Program pages.",
     category: "AFFILIATE",
   },
 ];

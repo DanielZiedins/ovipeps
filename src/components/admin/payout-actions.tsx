@@ -7,9 +7,10 @@ import { Input } from "@/components/ui/input";
 
 export function GeneratePayoutForm() {
   const router = useRouter();
-  const now = new Date();
-  const [year, setYear] = useState(now.getFullYear().toString());
-  const [month, setMonth] = useState((now.getMonth() + 1).toString());
+  const previousMonth = new Date();
+  previousMonth.setMonth(previousMonth.getMonth() - 1);
+  const [year, setYear] = useState(previousMonth.getFullYear().toString());
+  const [month, setMonth] = useState((previousMonth.getMonth() + 1).toString());
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);

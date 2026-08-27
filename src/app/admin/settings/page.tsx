@@ -6,7 +6,6 @@ const CORE_SETTING_KEYS = [
   "etransfer_instructions",
   "shipping_threshold",
   "free_shipping_message",
-  "affiliate_default_commission",
   "affiliate_attribution_days",
   "commission_hold_days",
   "site_name",

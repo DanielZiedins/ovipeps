@@ -21,15 +21,15 @@ export const metadata: Metadata = {
 const benefits = [
   {
     icon: BadgeDollarSign,
-    title: "Competitive commission",
+    title: "Tiered monthly commission",
     description:
-      "Earn 15% on qualifying regularly priced orders placed through your unique referral link or code. Sale and promotional orders are excluded.",
+      "Earn 10% on combined monthly qualifying sales up to $1,499, 20% from $1,500–$4,999, and 25% at $5,000 or more.",
   },
   {
     icon: Link2,
     title: "Simple tracking",
     description:
-      "Get a personal referral code and a URL you can copy into posts, profiles, emails, or messages. Our 30-day attribution window tracks qualifying return purchases.",
+      "Get a personal referral code that gives customers 5% off automatically. Our 30-day attribution window tracks qualifying return purchases.",
   },
   {
     icon: BarChart3,
@@ -68,7 +68,7 @@ const steps = [
     step: "04",
     title: "Earn commission",
     description:
-      "Commissions are approved after customer payment is confirmed, then paid manually each month with a complete payment record.",
+      "Your full monthly rate is calculated automatically after customer payment is confirmed, then paid manually with a complete payment record.",
   },
 ];
 
@@ -133,6 +133,40 @@ export default function AffiliatesPage() {
                 </p>
               </div>
             ))}
+          </div>
+        </section>
+
+        <section className="mt-20">
+          <div className="mb-10 text-center">
+            <p className="text-xs font-semibold uppercase tracking-widest text-teal">
+              Monthly earning tiers
+            </p>
+            <h2 className="mt-1 text-2xl font-semibold text-navy-deep">
+              The more your combined orders grow, the more you earn
+            </h2>
+            <p className="mx-auto mt-3 max-w-2xl text-sm leading-relaxed text-muted-foreground">
+              One rate applies to your complete qualifying merchandise subtotal for
+              the calendar month, after discounts and before shipping and taxes.
+            </p>
+          </div>
+          <div className="grid gap-5 md:grid-cols-3">
+            {[
+              { sales: "$0–$1,499", rate: "10%" },
+              { sales: "$1,500–$4,999", rate: "20%" },
+              { sales: "$5,000+", rate: "25%" },
+            ].map((tier) => (
+              <div key={tier.rate} className="rounded-2xl border border-sky/15 bg-gradient-to-br from-white to-sky/5 p-6 text-center shadow-sm">
+                <p className="text-sm font-medium text-muted-foreground">{tier.sales} monthly</p>
+                <p className="mt-2 text-4xl font-bold text-navy-deep">{tier.rate}</p>
+                <p className="mt-1 text-xs uppercase tracking-wide text-teal">commission back</p>
+              </div>
+            ))}
+          </div>
+          <div className="mt-5 rounded-2xl border border-warning/25 bg-warning/5 p-5 text-sm leading-relaxed text-muted-foreground">
+            Affiliates must reach $300 CAD in qualifying sales each calendar month.
+            After three missed months—not necessarily in a row—the account is frozen
+            pending OVIpeps review. Customers using an active affiliate code receive
+            an automatic 5% discount.
           </div>
         </section>
 

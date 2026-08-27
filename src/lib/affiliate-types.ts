@@ -19,6 +19,17 @@ export interface AffiliateDashboardData {
     totalEarnings: number;
     paidEarnings: number;
     pendingEarnings: number;
+    missedMinimumMonths: number;
+    frozenAt: string | null;
+  };
+  currentMonth: {
+    qualifyingSales: number;
+    commissionRate: number;
+    minimumMet: boolean;
+    amountToMinimum: number;
+    nextTierThreshold: number | null;
+    nextTierRate: number | null;
+    amountToNextTier: number;
   };
   conversionRate: number;
   commissionByStatus: Partial<Record<CommissionStatus, number>>;
@@ -41,6 +52,8 @@ export interface AffiliateDashboardData {
     id: string;
     orderNumber: string;
     orderAmount: number;
+    commissionableAmount: number;
+    commissionRate: number;
     commissionAmount: number;
     status: CommissionStatus;
     flagged: boolean;

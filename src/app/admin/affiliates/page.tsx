@@ -4,14 +4,29 @@ import { Button } from "@/components/ui/button";
 import { db } from "@/lib/db";
 import { formatCurrency } from "@/lib/utils";
 import { AffiliateStatusActions } from "@/components/admin/affiliate-status-actions";
+import { reconcileAllAffiliateMinimums } from "@/lib/affiliate";
+import { getUtcMonthBounds } from "@/lib/affiliate-program";
 
 export default async function AdminAffiliatesPage() {
+  await reconcileAllAffiliateMinimums();
+  const monthBounds = getUtcMonthBounds(new Date());
   const affiliates = await db.affiliateAccount.findMany({
     orderBy: { createdAt: "desc" },
     include: {
       user: { select: { email: true, firstName: true, lastName: true } },
     },
   });
+  const currentMonthSales = await db.affiliateCommission.groupBy({
+    by: ["affiliateId"],
+    where: {
+      createdAt: { gte: monthBounds.start, lt: monthBounds.end },
+      status: { not: "REVERSED" },
+    },
+    _sum: { commissionableAmount: true },
+  });
+  const salesByAffiliate = new Map(
+    currentMonthSales.map((row) => [row.affiliateId, row._sum.commissionableAmount ?? 0])
+  );
 
   const pendingCount = await db.affiliateApplication.count({
     where: { status: "PENDING" },
@@ -52,7 +67,8 @@ export default async function AdminAffiliatesPage() {
               <th className="px-4 py-3 font-medium">Affiliate</th>
               <th className="px-4 py-3 font-medium">Code</th>
               <th className="px-4 py-3 font-medium">Rate</th>
-              <th className="px-4 py-3 font-medium">Orders</th>
+              <th className="px-4 py-3 font-medium">This month</th>
+              <th className="px-4 py-3 font-medium">Misses</th>
               <th className="px-4 py-3 font-medium">Pending</th>
               <th className="px-4 py-3 font-medium">Paid</th>
               <th className="px-4 py-3 font-medium">Status</th>
@@ -61,7 +77,7 @@ export default async function AdminAffiliatesPage() {
           <tbody>
             {affiliates.length === 0 ? (
               <tr>
-                <td colSpan={7} className="px-4 py-8 text-center text-muted-foreground">
+                <td colSpan={8} className="px-4 py-8 text-center text-muted-foreground">
                   No affiliate accounts yet.
                 </td>
               </tr>
@@ -81,7 +97,8 @@ export default async function AdminAffiliatesPage() {
                   </td>
                   <td className="px-4 py-3 font-mono text-xs">{affiliate.code.startsWith("PENDING-") ? "Awaiting setup" : affiliate.code}</td>
                   <td className="px-4 py-3 tabular-nums">{affiliate.commissionRate}%</td>
-                  <td className="px-4 py-3 tabular-nums">{affiliate.totalOrders}</td>
+                  <td className="px-4 py-3 tabular-nums">{formatCurrency(salesByAffiliate.get(affiliate.id) ?? 0)}</td>
+                  <td className="px-4 py-3 tabular-nums">{affiliate.missedMinimumMonths}/3</td>
                   <td className="px-4 py-3 tabular-nums">
                     {formatCurrency(affiliate.pendingEarnings)}
                   </td>
@@ -90,7 +107,7 @@ export default async function AdminAffiliatesPage() {
                   </td>
                   <td className="px-4 py-3">
                     <div className="space-y-2">
-                      <Badge variant={affiliate.status === "ACTIVE" ? "success" : "default"}>{affiliate.status === "INACTIVE" ? "TERMINATED" : affiliate.status}</Badge>
+                      <Badge variant={affiliate.status === "ACTIVE" ? "success" : "default"}>{affiliate.status === "INACTIVE" ? "TERMINATED" : affiliate.status === "SUSPENDED" ? "FROZEN" : affiliate.status}</Badge>
                       <AffiliateStatusActions affiliateId={affiliate.id} status={affiliate.status} />
                     </div>
                   </td>

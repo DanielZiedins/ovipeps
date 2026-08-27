@@ -14,9 +14,11 @@ import {
   Check,
   Copy,
   DollarSign,
+  LockKeyhole,
   MousePointerClick,
   Percent,
   ShoppingCart,
+  TrendingUp,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -157,6 +159,7 @@ export function AffiliateDashboard({ data }: AffiliateDashboardProps) {
   const pendingCommission = data.commissionByStatus.PENDING ?? 0;
   const approvedCommission = data.commissionByStatus.APPROVED ?? 0;
   const paidCommission = data.commissionByStatus.PAID ?? 0;
+  const isFrozen = data.account.status === "SUSPENDED";
 
   const overviewCards = [
     {
@@ -172,6 +175,16 @@ export function AffiliateDashboard({ data }: AffiliateDashboardProps) {
     {
       label: "Conversion rate",
       value: `${data.conversionRate}%`,
+      icon: Percent,
+    },
+    {
+      label: "Current-month sales",
+      value: formatCurrency(data.currentMonth.qualifyingSales),
+      icon: TrendingUp,
+    },
+    {
+      label: "Current tier",
+      value: `${data.currentMonth.commissionRate}%`,
       icon: Percent,
     },
     {
@@ -193,7 +206,22 @@ export function AffiliateDashboard({ data }: AffiliateDashboardProps) {
 
   return (
     <div className="space-y-8">
-      {!hasAffiliateCode ? <AffiliateCodeSetup /> : null}
+      {isFrozen ? (
+        <Card className="border-warning/40 bg-warning/5">
+          <CardContent className="flex items-start gap-4 py-5">
+            <LockKeyhole className="mt-0.5 h-5 w-5 shrink-0 text-warning" />
+            <div>
+              <p className="font-semibold text-navy-deep">Affiliate account frozen</p>
+              <p className="mt-1 text-sm leading-relaxed text-muted-foreground">
+                Your account was frozen after missing the $300 monthly qualifying-sales
+                minimum three times. Your code and referral discount are inactive while
+                OVIpeps reviews the account.
+              </p>
+            </div>
+          </CardContent>
+        </Card>
+      ) : null}
+      {!hasAffiliateCode && !isFrozen ? <AffiliateCodeSetup /> : null}
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
         {overviewCards.map((card) => (
           <Card key={card.label}>
@@ -210,12 +238,47 @@ export function AffiliateDashboard({ data }: AffiliateDashboardProps) {
         ))}
       </div>
 
+      <Card className="border-sky/20 bg-gradient-to-br from-sky/5 to-cyan/5">
+        <CardHeader>
+          <CardTitle>This month&apos;s tier progress</CardTitle>
+          <CardDescription>
+            Commission is based on your combined qualifying merchandise subtotal before
+            shipping and taxes. Your customer&apos;s automatic 5% discount is deducted first.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="grid gap-5 sm:grid-cols-3">
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Monthly minimum</p>
+            <p className="mt-1 text-lg font-semibold text-navy-deep">
+              {data.currentMonth.minimumMet
+                ? "Met"
+                : `${formatCurrency(data.currentMonth.amountToMinimum)} to go`}
+            </p>
+          </div>
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Missed months</p>
+            <p className="mt-1 text-lg font-semibold text-navy-deep">
+              {data.account.missedMinimumMonths} of 3
+            </p>
+          </div>
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Next tier</p>
+            <p className="mt-1 text-lg font-semibold text-navy-deep">
+              {data.currentMonth.nextTierRate
+                ? `${formatCurrency(data.currentMonth.amountToNextTier)} to ${data.currentMonth.nextTierRate}%`
+                : "Top 25% tier reached"}
+            </p>
+          </div>
+        </CardContent>
+      </Card>
+
       {hasAffiliateCode && referralUrl ? <Card>
         <CardHeader>
           <CardTitle>Your referral link</CardTitle>
           <CardDescription>
-            Share this link to earn {data.account.commissionRate}% commission on
-            qualifying orders. Attribution window: 30 days.
+            Share this link to earn 10%, 20%, or 25% based on your combined monthly
+            qualifying sales. Customers using your active code receive 5% off.
+            Attribution window: 30 days.
           </CardDescription>
         </CardHeader>
         <CardContent className="grid gap-5 sm:grid-cols-2">
@@ -328,12 +391,16 @@ export function AffiliateDashboard({ data }: AffiliateDashboardProps) {
         columns={[
           { key: "order", label: "Order" },
           { key: "amount", label: "Order total" },
+          { key: "qualifying", label: "Qualifying subtotal" },
+          { key: "rate", label: "Rate" },
           { key: "commission", label: "Commission" },
           { key: "status", label: "Status" },
         ]}
         rows={data.commissions.map((row) => ({
           order: row.orderNumber,
           amount: formatCurrency(row.orderAmount),
+          qualifying: formatCurrency(row.commissionableAmount),
+          rate: `${row.commissionRate}%`,
           commission: formatCurrency(row.commissionAmount),
           status: (
             <div className="flex flex-wrap items-center gap-2">

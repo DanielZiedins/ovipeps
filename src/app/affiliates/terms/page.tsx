@@ -64,8 +64,8 @@ export default function AffiliateTermsPage() {
                   </p>
                   <p>
                     Approved partners receive dashboard access and choose their own unique referral
-                    code after approval. Commission rates are set at approval and may be updated
-                    with reasonable notice.
+                    code after approval. Commission rates are calculated automatically from
+                    combined monthly qualifying sales under the tier schedule below.
                   </p>
                 </>
               ),
@@ -132,8 +132,8 @@ export default function AffiliateTermsPage() {
               content: (
                 <>
                   <p>
-                    Commissions are calculated on the commissionable order subtotal
-                    after discounts, excluding shipping and taxes. Commission statuses
+                    Commissions are calculated on the merchandise subtotal after all
+                    discounts, excluding shipping and taxes. Commission statuses
                     include:
                   </p>
                   <ul>
@@ -157,12 +157,28 @@ export default function AffiliateTermsPage() {
                     </li>
                   </ul>
                   <p>
-                    Affiliates earn a commission of fifteen percent (15%) on qualifying
-                    sales generated through their approved affiliate link or code.
-                    Products or orders discounted as part of an OVIpeps promotion or
-                    sale event are excluded; unless otherwise stated, regularly priced
-                    products are eligible. Affiliates must generate at least $300 CAD
-                    in qualifying sales per calendar month to maintain Affiliate Status.
+                    The affiliate&apos;s combined qualifying sales for each calendar month
+                    determine one commission rate for that entire month: ten percent
+                    (10%) on combined monthly sales up to $1,499 CAD; twenty percent
+                    (20%) on combined monthly sales from $1,500 through $4,999 CAD; and
+                    twenty-five percent (25%) on combined monthly sales of $5,000 CAD or
+                    more. When a higher tier is reached, all qualifying commissions for
+                    that month are recalculated automatically at the higher rate.
+                  </p>
+                  <p>
+                    Customers who use an active affiliate code receive an automatic five
+                    percent (5%) discount on the merchandise subtotal. This discount is
+                    applied before commission is calculated. Shipping and taxes are not
+                    included in combined monthly qualifying sales or commission.
+                  </p>
+                  <p>
+                    Beginning with the first full calendar month after approval,
+                    affiliates must generate at least $300 CAD in qualifying sales each
+                    month to maintain ongoing affiliate status. If an affiliate misses
+                    the $300 minimum three times, whether consecutive or not, the account
+                    is automatically frozen. The affiliate code and customer discount
+                    remain inactive until OVIpeps reviews the account and decides whether
+                    to reactivate or terminate the arrangement.
                   </p>
                   <p>
                     Commissions on refunded or cancelled orders may be reversed.

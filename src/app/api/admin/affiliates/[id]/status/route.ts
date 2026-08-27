@@ -11,7 +11,13 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
   try {
     const { id } = await params;
     const { status } = schema.parse(await request.json());
-    await db.affiliateAccount.update({ where: { id }, data: { status } });
+    await db.affiliateAccount.update({
+      where: { id },
+      data: {
+        status,
+        frozenAt: status === "SUSPENDED" ? new Date() : null,
+      },
+    });
     return NextResponse.json({ success: true });
   } catch (error) {
     const message = error instanceof Error ? error.message : "Unable to update affiliate status";

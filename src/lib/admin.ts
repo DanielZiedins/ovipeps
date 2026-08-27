@@ -1,5 +1,15 @@
 import { db } from "@/lib/db";
 import { emailTemplates, sendEmail } from "@/lib/emails";
+import {
+  evaluateAffiliateMonth,
+  reconcileAllAffiliateMinimums,
+} from "@/lib/affiliate";
+import {
+  getAffiliateCommissionRate,
+  getPeriodBounds,
+  getUtcMonthBounds,
+  roundMoney,
+} from "@/lib/affiliate-program";
 
 const PAID_STATUSES = [
   "PAYMENT_RECEIVED",
@@ -105,11 +115,7 @@ export async function approveAffiliateApplication(
     throw new Error("User already has an affiliate account");
   }
 
-  const defaultCommission = await db.siteSetting.findUnique({
-    where: { key: "affiliate_default_commission" },
-  });
-
-  const commissionRate = Number(defaultCommission?.value ?? 15);
+  const commissionRate = 10;
 
   await db.$transaction(async (tx) => {
     await tx.affiliateApplication.update({
@@ -133,6 +139,7 @@ export async function approveAffiliateApplication(
         code: `PENDING-${userId!}`,
         commissionRate,
         status: "ACTIVE",
+        minimumTrackingStartedAt: new Date(),
       },
     });
   });
@@ -142,7 +149,6 @@ export async function approveAffiliateApplication(
       application.email,
       emailTemplates.affiliateApproved({
         name: application.name,
-        commissionRate,
       })
     );
   } catch (error) {
@@ -185,6 +191,11 @@ export async function generateMonthlyPayout(year: number, month: number) {
     throw new Error("Invalid month");
   }
 
+  const { start, end } = getPeriodBounds(year, month);
+  if (end > getUtcMonthBounds(new Date()).start) {
+    throw new Error("Monthly reports can only be generated after the month has ended");
+  }
+
   const existing = await db.affiliatePayout.findUnique({
     where: {
       periodYear_periodMonth: { periodYear: year, periodMonth: month },
@@ -195,14 +206,20 @@ export async function generateMonthlyPayout(year: number, month: number) {
     throw new Error(`Payout for ${month}/${year} already exists`);
   }
 
-  const start = new Date(year, month - 1, 1);
-  const end = new Date(year, month, 0, 23, 59, 59, 999);
+  await reconcileAllAffiliateMinimums();
+  const trackedAffiliates = await db.affiliateAccount.findMany({
+    where: { status: "ACTIVE", minimumTrackingStartedAt: { lt: end } },
+    select: { id: true },
+  });
+  for (const affiliate of trackedAffiliates) {
+    await evaluateAffiliateMonth(affiliate.id, year, month);
+  }
 
   const commissions = await db.affiliateCommission.findMany({
     where: {
       status: { in: ["PENDING", "APPROVED"] },
       payoutItem: null,
-      createdAt: { gte: start, lte: end },
+      createdAt: { gte: start, lt: end },
     },
     include: { affiliate: true },
   });
@@ -217,7 +234,9 @@ export async function generateMonthlyPayout(year: number, month: number) {
       affiliateId: string;
       commissions: typeof commissions;
       grossSales: number;
+      commissionRate: number;
       commissionOwed: number;
+      previousCommissionOwed: number;
     }
   >();
 
@@ -226,17 +245,30 @@ export async function generateMonthlyPayout(year: number, month: number) {
       affiliateId: commission.affiliateId,
       commissions: [],
       grossSales: 0,
+      commissionRate: 10,
       commissionOwed: 0,
+      previousCommissionOwed: 0,
     };
     entry.commissions.push(commission);
     entry.grossSales += commission.commissionableAmount;
-    entry.commissionOwed += commission.commissionAmount;
+    entry.previousCommissionOwed += commission.commissionAmount;
     byAffiliate.set(commission.affiliateId, entry);
   }
 
-  const totalAmount = [...byAffiliate.values()].reduce(
-    (sum, a) => sum + a.commissionOwed,
-    0
+  for (const entry of byAffiliate.values()) {
+    entry.grossSales = roundMoney(entry.grossSales);
+    entry.commissionRate = getAffiliateCommissionRate(entry.grossSales);
+    entry.commissionOwed = roundMoney(
+      entry.commissions.reduce(
+        (sum, commission) =>
+          sum + roundMoney(commission.commissionableAmount * (entry.commissionRate / 100)),
+        0
+      )
+    );
+  }
+
+  const totalAmount = roundMoney(
+    [...byAffiliate.values()].reduce((sum, a) => sum + a.commissionOwed, 0)
   );
 
   const payout = await db.$transaction(async (tx) => {
@@ -250,13 +282,26 @@ export async function generateMonthlyPayout(year: number, month: number) {
     });
 
     for (const entry of byAffiliate.values()) {
+      for (const commission of entry.commissions) {
+        await tx.affiliateCommission.update({
+          where: { id: commission.id },
+          data: {
+            commissionRate: entry.commissionRate,
+            commissionAmount: roundMoney(
+              commission.commissionableAmount * (entry.commissionRate / 100)
+            ),
+          },
+        });
+      }
+
       await tx.affiliatePayoutItem.create({
         data: {
           payoutId: created.id,
           affiliateId: entry.affiliateId,
           commissionIds: entry.commissions.map((commission) => commission.id),
-          grossSales: Math.round(entry.grossSales * 100) / 100,
-          commissionOwed: Math.round(entry.commissionOwed * 100) / 100,
+          grossSales: entry.grossSales,
+          commissionRate: entry.commissionRate,
+          commissionOwed: entry.commissionOwed,
           status: "DRAFT",
         },
       });
@@ -264,6 +309,30 @@ export async function generateMonthlyPayout(year: number, month: number) {
       await tx.affiliateCommission.updateMany({
         where: { id: { in: entry.commissions.map((commission) => commission.id) } },
         data: { status: "LOCKED", lockedAt: new Date() },
+      });
+
+      const earningsDelta = roundMoney(
+        entry.commissionOwed - entry.previousCommissionOwed
+      );
+      await tx.affiliateAccount.update({
+        where: { id: entry.affiliateId },
+        data: {
+          commissionRate: entry.commissionRate,
+          totalEarnings: { increment: earningsDelta },
+          pendingEarnings: { increment: earningsDelta },
+        },
+      });
+      await tx.affiliateMonthlyPerformance.updateMany({
+        where: {
+          affiliateId: entry.affiliateId,
+          periodYear: year,
+          periodMonth: month,
+        },
+        data: {
+          qualifyingSales: entry.grossSales,
+          commissionRate: entry.commissionRate,
+          commissionOwed: entry.commissionOwed,
+        },
       });
     }
 

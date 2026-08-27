@@ -3,7 +3,7 @@ import { z } from "zod";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 
-const AGREEMENT_VERSION = "2026-08-25";
+const AGREEMENT_VERSION = "2026-08-27-tiered-commission";
 
 const applySchema = z.object({
   firstName: z.string().trim().min(1),

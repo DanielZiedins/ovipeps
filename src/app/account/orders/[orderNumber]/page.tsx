@@ -218,7 +218,7 @@ export default async function OrderDetailPage({ params }: OrderDetailPageProps) 
                     </div>
                     {order.discountAmount > 0 && (
                       <div className="flex justify-between text-success">
-                        <span>Discount</span>
+                        <span>{order.affiliateCode ? "Discount (includes affiliate 5%)" : "Discount"}</span>
                         <span>-{formatCurrency(order.discountAmount)}</span>
                       </div>
                     )}

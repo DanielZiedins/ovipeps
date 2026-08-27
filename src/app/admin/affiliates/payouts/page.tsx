@@ -27,7 +27,7 @@ export default async function AdminAffiliatePayoutsPage() {
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
           <h1 className="text-2xl font-semibold tracking-tight text-navy-deep">Affiliate Payouts</h1>
-          <p className="mt-1 text-sm text-muted-foreground">Generate monthly payout reports and record manual payments.</p>
+          <p className="mt-1 text-sm text-muted-foreground">Generate completed-month tier reports, review $300 minimums, and record manual payments.</p>
         </div>
         <Link href="/api/admin/affiliates/payouts/export"><Button variant="outline">Download ongoing CSV ledger</Button></Link>
       </div>
@@ -70,6 +70,7 @@ export default async function AdminAffiliatePayoutsPage() {
                     <tr className="border-b border-border text-left text-muted-foreground">
                       <th className="pb-3 pr-4 font-medium">Affiliate</th>
                       <th className="pb-3 pr-4 font-medium">Gross Sales</th>
+                      <th className="pb-3 pr-4 font-medium">Rate</th>
                       <th className="pb-3 pr-4 font-medium">Commission</th>
                       <th className="pb-3 pr-4 font-medium">Status</th>
                       <th className="pb-3 pr-4 font-medium">Payment record</th>
@@ -90,6 +91,9 @@ export default async function AdminAffiliatePayoutsPage() {
                         </td>
                         <td className="py-3 pr-4 tabular-nums">
                           {formatCurrency(item.grossSales)}
+                        </td>
+                        <td className="py-3 pr-4 tabular-nums">
+                          {item.commissionRate}%
                         </td>
                         <td className="py-3 pr-4 tabular-nums">
                           {formatCurrency(item.commissionOwed)}
@@ -119,7 +123,7 @@ export default async function AdminAffiliatePayoutsPage() {
                           ) : "—"}
                         </td>
                         <td className="py-3">
-                          {item.status !== "PAID" && (
+                          {item.status !== "PAID" && item.commissionOwed > 0 && (
                             <MarkPayoutPaidButton payoutItemId={item.id} amount={item.commissionOwed} />
                           )}
                         </td>
