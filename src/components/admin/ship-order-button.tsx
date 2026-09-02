@@ -4,24 +4,23 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 
-export function ConfirmPaymentButton({ orderId }: { orderId: string }) {
+export function ShipOrderButton({ orderId }: { orderId: string }) {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  async function handleConfirm() {
+  async function handleShipped() {
     setLoading(true);
     setError(null);
 
     try {
-      const res = await fetch(`/api/admin/orders/${orderId}/confirm-payment`, {
+      const response = await fetch(`/api/admin/orders/${orderId}/mark-shipped`, {
         method: "POST",
       });
+      const data = await response.json();
 
-      const data = await res.json();
-
-      if (!res.ok) {
-        throw new Error(data.error ?? "Failed to confirm payment");
+      if (!response.ok) {
+        throw new Error(data.error ?? "Failed to mark order as shipped");
       }
 
       router.refresh();
@@ -34,8 +33,8 @@ export function ConfirmPaymentButton({ orderId }: { orderId: string }) {
 
   return (
     <div className="space-y-2">
-      <Button onClick={handleConfirm} disabled={loading} variant="primary">
-        {loading ? "Updating…" : "Payment Received"}
+      <Button onClick={handleShipped} disabled={loading} variant="primary">
+        {loading ? "Updating…" : "Shipped"}
       </Button>
       {error && <p className="text-sm text-error">{error}</p>}
     </div>

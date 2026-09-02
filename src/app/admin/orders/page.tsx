@@ -8,10 +8,9 @@ import { cn } from "@/lib/utils";
 const STATUS_FILTERS = [
   { value: "all", label: "All" },
   { value: "AWAITING_PAYMENT", label: "Submitted / Awaiting Payment" },
-  { value: "PAYMENT_RECEIVED", label: "Payment Received" },
-  { value: "PROCESSING", label: "Processing" },
+  { value: "PENDING_SHIPPING", label: "Pending Shipping" },
   { value: "SHIPPED", label: "Shipped" },
-  { value: "COMPLETED", label: "Completed" },
+  { value: "COMPLETED", label: "Complete" },
   { value: "CANCELLED", label: "Cancelled" },
   { value: "REFUNDED", label: "Refunded" },
 ] as const;
@@ -23,9 +22,14 @@ export default async function AdminOrdersPage({
 }) {
   const { status } = await searchParams;
   const statusFilter = status && status !== "all" ? status : undefined;
+  const orderWhere = statusFilter === "PENDING_SHIPPING"
+    ? { status: { in: ["PAYMENT_RECEIVED", "PROCESSING"] } }
+    : statusFilter
+      ? { status: statusFilter }
+      : undefined;
 
   const orders = await db.order.findMany({
-    where: statusFilter ? { status: statusFilter as never } : undefined,
+    where: orderWhere as never,
     orderBy: { createdAt: "desc" },
     take: 100,
     select: {
