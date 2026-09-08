@@ -38,6 +38,10 @@ export default async function AdminOrderDetailPage({
   }
 
   const address = order.shippingAddress as ShippingAddress | null;
+  const deliveryMethod =
+    (order.shippingAddress as { deliveryMethod?: string } | null)?.deliveryMethod === "PICKUP"
+      ? "PICKUP"
+      : "SHIPPING";
 
   return (
     <div className="space-y-6">
@@ -50,7 +54,14 @@ export default async function AdminOrderDetailPage({
             Placed {formatDate(order.createdAt)}
           </p>
         </div>
-        <OrderStatusBadge status={order.status} />
+        <div className="flex flex-wrap items-center gap-2">
+          {deliveryMethod === "PICKUP" && (
+            <span className="rounded-full border border-teal/30 bg-teal/10 px-3 py-1 text-xs font-bold uppercase tracking-wide text-teal">
+              Pick Up
+            </span>
+          )}
+          <OrderStatusBadge status={order.status} />
+        </div>
       </div>
 
       {order.status === "AWAITING_PAYMENT" && (
@@ -105,10 +116,17 @@ export default async function AdminOrderDetailPage({
 
         <Card>
           <CardHeader>
-            <CardTitle>Shipping Address</CardTitle>
+            <CardTitle>{deliveryMethod === "PICKUP" ? "Pick Up" : "Shipping Address"}</CardTitle>
           </CardHeader>
           <CardContent className="text-sm">
-            {address ? (
+            {deliveryMethod === "PICKUP" ? (
+              <div className="space-y-1">
+                <p className="font-semibold text-teal">Pick Up order</p>
+                <p>{address?.firstName} {address?.lastName}</p>
+                {address?.phone && <p>{address.phone}</p>}
+                <p className="text-muted-foreground">No shipping address required.</p>
+              </div>
+            ) : address ? (
               <address className="not-italic space-y-0.5">
                 <p>
                   {address.firstName} {address.lastName}
@@ -189,6 +207,12 @@ export default async function AdminOrderDetailPage({
               </span>
             </div>
           )}
+          <div className="flex justify-between">
+            <span className="text-muted-foreground">Delivery method</span>
+            <span className="font-medium">
+              {deliveryMethod === "PICKUP" ? "Pick Up" : "Shipping"}
+            </span>
+          </div>
           <div className="flex justify-between">
             <span className="text-muted-foreground">Shipping</span>
             <span className="tabular-nums">
