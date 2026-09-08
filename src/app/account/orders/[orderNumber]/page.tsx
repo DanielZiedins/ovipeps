@@ -77,10 +77,6 @@ export default async function OrderDetailPage({ params }: OrderDetailPageProps) 
   }
 
   const shippingLines = formatShippingAddress(order.shippingAddress);
-  const deliveryMethod =
-    (order.shippingAddress as { deliveryMethod?: string } | null)?.deliveryMethod === "PICKUP"
-      ? "PICKUP"
-      : "SHIPPING";
   const trackingNumber =
     order.trackingNumber ?? order.shipments[0]?.trackingNumber;
   const trackingCarrier =
@@ -114,7 +110,9 @@ export default async function OrderDetailPage({ params }: OrderDetailPageProps) 
           <div className="space-y-6 lg:col-span-3">
             <div className="flex flex-wrap items-center gap-3">
               <Badge variant={getStatusVariant(order.status)}>
-                {order.status.replace(/_/g, " ")}
+                {order.status === "AWAITING_PAYMENT"
+                  ? "ORDER SUBMITTED"
+                  : order.status.replace(/_/g, " ")}
               </Badge>
               {order.paidAt ? (
                 <span className="text-sm text-muted-foreground">
@@ -215,16 +213,12 @@ export default async function OrderDetailPage({ params }: OrderDetailPageProps) 
 
                   <div className="mt-6 space-y-1 border-t border-border pt-4 text-sm">
                     <div className="flex justify-between">
-                      <span className="text-muted-foreground">Delivery method</span>
-                      <span>{deliveryMethod === "PICKUP" ? "Pick Up" : "Shipping"}</span>
-                    </div>
-                    <div className="flex justify-between">
                       <span className="text-muted-foreground">Subtotal</span>
                       <span>{formatCurrency(order.subtotal)}</span>
                     </div>
                     {order.discountAmount > 0 && (
                       <div className="flex justify-between text-success">
-                        <span>Discount</span>
+                        <span>{order.affiliateCode ? "Discount (includes affiliate 5%)" : "Discount"}</span>
                         <span>-{formatCurrency(order.discountAmount)}</span>
                       </div>
                     )}
@@ -232,7 +226,7 @@ export default async function OrderDetailPage({ params }: OrderDetailPageProps) 
                       <span className="text-muted-foreground">Shipping</span>
                       <span>
                         {order.shippingAmount === 0
-                          ? "$0.00"
+                          ? "Free"
                           : formatCurrency(order.shippingAmount)}
                       </span>
                     </div>
@@ -248,14 +242,10 @@ export default async function OrderDetailPage({ params }: OrderDetailPageProps) 
 
               <Card>
                 <CardHeader>
-                  <CardTitle>{deliveryMethod === "PICKUP" ? "Pick Up" : "Shipping Address"}</CardTitle>
+                  <CardTitle>Shipping Address</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  {deliveryMethod === "PICKUP" ? (
-                    <p className="text-sm font-medium">
-                      Pick Up — no shipping address required.
-                    </p>
-                  ) : shippingLines ? (
+                  {shippingLines ? (
                     <address className="space-y-0.5 text-sm not-italic">
                       {shippingLines.map((line) => (
                         <p key={line}>{line}</p>

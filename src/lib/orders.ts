@@ -1,6 +1,15 @@
 import type { Prisma } from "@/generated/prisma/client";
 import { db } from "@/lib/db";
-import { attributeOrder, createCommission } from "@/lib/affiliate";
+import { syncAvailableProducts } from "@/lib/catalog-sync";
+import {
+  attributeOrder,
+  createCommission,
+  resolveActiveAffiliate,
+} from "@/lib/affiliate";
+import {
+  AFFILIATE_CUSTOMER_DISCOUNT_RATE,
+  roundMoney,
+} from "@/lib/affiliate-program";
 import {
   applyCatalogVariantPolicy,
   getAvailableVariant,
@@ -24,16 +33,13 @@ export interface ShippingAddress {
 export interface CreateOrderItem {
   productId: string;
   variantId: string;
+  sku?: string;
   quantity: number;
 }
 
 export interface CreateOrderInput {
   email: string;
-  firstName: string;
-  lastName: string;
-  phone?: string;
-  deliveryMethod: "SHIPPING" | "PICKUP";
-  shippingAddress?: ShippingAddress | null;
+  shippingAddress: ShippingAddress;
   items: CreateOrderItem[];
   discountCode?: string | null;
   affiliateCode?: string | null;
@@ -93,21 +99,44 @@ export async function createOrder(input: CreateOrderInput) {
     throw new Error("Cart is empty");
   }
 
-  const variantIds = input.items.map((item) => item.variantId);
+  try {
+    await syncAvailableProducts();
+  } catch (error) {
+    // Checkout uses the canonical SKU policy below, so a nonessential catalog
+    // refresh must not block an otherwise valid order.
+    console.error("Catalog refresh during checkout failed", error);
+  }
+
+  const variantIds = input.items.map((item) => item.variantId).filter(Boolean);
+  const variantSkus = input.items
+    .map((item) => item.sku?.trim().toUpperCase())
+    .filter((sku): sku is string => Boolean(sku));
   const variants = await db.productVariant.findMany({
-    where: { id: { in: variantIds } },
+    where: {
+      OR: [
+        ...(variantIds.length ? [{ id: { in: variantIds } }] : []),
+        ...(variantSkus.length ? [{ sku: { in: variantSkus } }] : []),
+      ],
+    },
     include: { product: true },
   });
 
-  const variantMap = new Map(variants.map((variant) => [variant.id, variant]));
+  const variantsById = new Map(variants.map((variant) => [variant.id, variant]));
+  const variantsBySku = new Map(variants.map((variant) => [variant.sku, variant]));
 
   let subtotal = 0;
   const orderItems = input.items.map((item) => {
-    const variant = variantMap.get(item.variantId);
+    const variantById = variantsById.get(item.variantId);
+    const normalizedSku = item.sku?.trim().toUpperCase();
+    const variant =
+      variantById ??
+      (normalizedSku ? variantsBySku.get(normalizedSku) : undefined);
     if (!variant) {
-      throw new Error(`Product variant not found: ${item.variantId}`);
+      throw new Error(
+        "One or more cart items are no longer available. Please refresh your cart."
+      );
     }
-    if (variant.productId !== item.productId) {
+    if (variantById && variant.productId !== item.productId) {
       throw new Error("Product and variant mismatch");
     }
     const catalogVariant = applyCatalogVariantPolicy(
@@ -138,16 +167,31 @@ export async function createOrder(input: CreateOrderInput) {
     };
   });
 
-  const { discountAmount, discountCode } = await calculateDiscount(
+  const submittedAffiliateCode =
+    input.affiliateCode?.trim().toUpperCase() ||
+    input.referralCode?.trim().toUpperCase() ||
+    null;
+  const affiliate = submittedAffiliateCode
+    ? await resolveActiveAffiliate(submittedAffiliateCode)
+    : null;
+  if (submittedAffiliateCode && !affiliate) {
+    throw new Error("Affiliate code not found or inactive");
+  }
+
+  const promotion = await calculateDiscount(
     input.discountCode,
     subtotal
   );
+  const affiliateDiscountAmount = affiliate
+    ? roundMoney(subtotal * (AFFILIATE_CUSTOMER_DISCOUNT_RATE / 100))
+    : 0;
+  const discountAmount = Math.min(
+    subtotal,
+    roundMoney(promotion.discountAmount + affiliateDiscountAmount)
+  );
+  const discountCode = promotion.discountCode;
 
-  if (input.deliveryMethod === "SHIPPING" && !input.shippingAddress) {
-    throw new Error("Shipping address is required");
-  }
-
-  const shippingAmount = input.deliveryMethod === "PICKUP" ? 0 : FLAT_SHIPPING_RATE;
+  const shippingAmount = FLAT_SHIPPING_RATE;
   const taxAmount = 0;
   const total =
     Math.round((subtotal - discountAmount + shippingAmount + taxAmount) * 100) /
@@ -198,25 +242,11 @@ export async function createOrder(input: CreateOrderInput) {
         taxAmount,
         total,
         discountCode: discountCode ?? undefined,
-        affiliateCode: input.affiliateCode?.trim().toUpperCase() || undefined,
+        affiliateCode: affiliate?.code,
         referralCode: input.referralCode?.trim() || undefined,
-        shippingAddress: {
-          ...(input.shippingAddress ?? {
-            firstName: input.firstName,
-            lastName: input.lastName,
-            phone: input.phone || undefined,
-          }),
-          deliveryMethod: input.deliveryMethod,
-        } as unknown as Prisma.InputJsonValue,
+        shippingAddress: input.shippingAddress as unknown as Prisma.InputJsonValue,
         items: {
           create: orderItems,
-        },
-        payments: {
-          create: {
-            amount: total,
-            method: "INTERAC_E_TRANSFER",
-            status: "PENDING",
-          },
         },
       },
       include: {
@@ -235,24 +265,27 @@ export async function createOrder(input: CreateOrderInput) {
     return created;
   });
 
-  const affiliateCode = input.affiliateCode ?? input.referralCode;
-  if (affiliateCode) {
-    await attributeOrder(order.id, affiliateCode);
+  try {
+    if (affiliate) {
+      await attributeOrder(order.id, affiliate.code);
+    }
+  } catch (error) {
+    // Attribution is secondary and must never turn a completed order into a
+    // checkout failure for the customer.
+    console.error("Order affiliate attribution failed", error);
   }
 
-  const eTransferSetting = await db.siteSetting.findUnique({
-    where: { key: "etransfer_email" },
-  });
   try {
+    const eTransferSetting = await db.siteSetting.findUnique({
+      where: { key: "etransfer_email" },
+    });
     await sendEmail(
       order.email,
       emailTemplates.orderConfirmation({
         orderNumber: order.orderNumber,
         total: `$${order.total.toFixed(2)} CAD`,
-        name: input.firstName,
-        deliveryMethod: input.deliveryMethod,
-        shippingAmount: `$${order.shippingAmount.toFixed(2)} CAD`,
-        etransferEmail: eTransferSetting?.value ?? "orders@ovipeps.ca",
+        name: input.shippingAddress.firstName,
+        etransferEmail: eTransferSetting?.value ?? "ovipeps@gmail.com",
         autodepositName: "IN Z",
         items: order.items.map((item) => ({
           name: item.productName,
@@ -321,23 +354,35 @@ export async function confirmPayment(
     throw new Error("Order is not awaiting payment");
   }
 
-  const pendingPayment = order.payments.find((payment) => payment.status === "PENDING");
-  if (!pendingPayment) {
-    throw new Error("No pending payment found for this order");
-  }
+  const pendingPayment = order.payments.find(
+    (payment) => payment.status === "PENDING"
+  );
 
   const now = new Date();
 
   const updatedOrder = await db.$transaction(async (tx) => {
-    await tx.payment.update({
-      where: { id: pendingPayment.id },
-      data: {
-        status: "CONFIRMED",
-        confirmedAt: now,
-        confirmedBy: options.confirmedBy,
-        reference: options.paymentReference ?? order.paymentReference ?? undefined,
-      },
-    });
+    const paymentData = {
+      status: "CONFIRMED" as const,
+      confirmedAt: now,
+      confirmedBy: options.confirmedBy,
+      reference: options.paymentReference ?? order.paymentReference ?? undefined,
+    };
+
+    if (pendingPayment) {
+      await tx.payment.update({
+        where: { id: pendingPayment.id },
+        data: paymentData,
+      });
+    } else {
+      await tx.payment.create({
+        data: {
+          orderId: order.id,
+          amount: order.total,
+          method: order.paymentMethod,
+          ...paymentData,
+        },
+      });
+    }
 
     return tx.order.update({
       where: { id: orderId },
