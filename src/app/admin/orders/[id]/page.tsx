@@ -1,6 +1,5 @@
 import { notFound } from "next/navigation";
 import { ConfirmPaymentButton } from "@/components/admin/confirm-payment-button";
-import { ShipOrderButton } from "@/components/admin/ship-order-button";
 import { OrderStatusBadge } from "@/components/admin/order-status-badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { db } from "@/lib/db";
@@ -38,6 +37,10 @@ export default async function AdminOrderDetailPage({
   }
 
   const address = order.shippingAddress as ShippingAddress | null;
+  const deliveryMethod =
+    (order.shippingAddress as { deliveryMethod?: string } | null)?.deliveryMethod === "PICKUP"
+      ? "PICKUP"
+      : "SHIPPING";
 
   return (
     <div className="space-y-6">
@@ -50,7 +53,14 @@ export default async function AdminOrderDetailPage({
             Placed {formatDate(order.createdAt)}
           </p>
         </div>
-        <OrderStatusBadge status={order.status} />
+        <div className="flex flex-wrap items-center gap-2">
+          {deliveryMethod === "PICKUP" && (
+            <span className="rounded-full border border-teal/30 bg-teal/10 px-3 py-1 text-xs font-bold uppercase tracking-wide text-teal">
+              Pick Up
+            </span>
+          )}
+          <OrderStatusBadge status={order.status} />
+        </div>
       </div>
 
       {order.status === "AWAITING_PAYMENT" && (
@@ -69,16 +79,6 @@ export default async function AdminOrderDetailPage({
               </p>
             )}
             <ConfirmPaymentButton orderId={order.id} />
-          </CardContent>
-        </Card>
-      )}
-
-      {(order.status === "PROCESSING" || order.status === "PAYMENT_RECEIVED") && (
-        <Card className="border-primary/40 bg-primary/5">
-          <CardHeader><CardTitle>Pending Shipping</CardTitle></CardHeader>
-          <CardContent className="space-y-4">
-            <p className="text-sm text-muted-foreground">Select Shipped after this order has been shipped. The order status will then change to Complete.</p>
-            <ShipOrderButton orderId={order.id} />
           </CardContent>
         </Card>
       )}
@@ -105,10 +105,17 @@ export default async function AdminOrderDetailPage({
 
         <Card>
           <CardHeader>
-            <CardTitle>Shipping Address</CardTitle>
+            <CardTitle>{deliveryMethod === "PICKUP" ? "Pick Up" : "Shipping Address"}</CardTitle>
           </CardHeader>
           <CardContent className="text-sm">
-            {address ? (
+            {deliveryMethod === "PICKUP" ? (
+              <div className="space-y-1">
+                <p className="font-semibold text-teal">Pick Up order</p>
+                <p>{address?.firstName} {address?.lastName}</p>
+                {address?.phone && <p>{address.phone}</p>}
+                <p className="text-muted-foreground">No shipping address required.</p>
+              </div>
+            ) : address ? (
               <address className="not-italic space-y-0.5">
                 <p>
                   {address.firstName} {address.lastName}
@@ -181,14 +188,18 @@ export default async function AdminOrderDetailPage({
           </div>
           {order.discountAmount > 0 && (
             <div className="flex justify-between">
-              <span className="text-muted-foreground">
-                {order.affiliateCode ? "Discount (includes affiliate 5%)" : "Discount"}
-              </span>
+              <span className="text-muted-foreground">Discount</span>
               <span className="tabular-nums">
                 -{formatCurrency(order.discountAmount)}
               </span>
             </div>
           )}
+          <div className="flex justify-between">
+            <span className="text-muted-foreground">Delivery method</span>
+            <span className="font-medium">
+              {deliveryMethod === "PICKUP" ? "Pick Up" : "Shipping"}
+            </span>
+          </div>
           <div className="flex justify-between">
             <span className="text-muted-foreground">Shipping</span>
             <span className="tabular-nums">

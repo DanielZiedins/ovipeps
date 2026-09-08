@@ -21,13 +21,13 @@ export async function generateMetadata({
   const { orderNumber } = await params;
   return {
     title: `Order ${orderNumber} | OVIpeps`,
-    description: "Submitted order details and next steps",
+    description: "Order confirmation and payment instructions",
   };
 }
 
 async function getEtransferSettings() {
   const defaults = {
-    email: "ovipeps@gmail.com",
+    email: "orders@ovipeps.ca",
     instructions:
       "Please send your Interac e-Transfer and include your order number in the message field.",
   };
@@ -81,12 +81,7 @@ export default async function OrderConfirmationPage({
     notFound();
   }
 
-  const session = await auth().catch((error) => {
-    // Guest confirmation remains securely accessible through its signed token
-    // even if account authentication is temporarily unavailable.
-    console.error("Optional confirmation session lookup failed", error);
-    return null;
-  });
+  const session = await auth();
   const role = (session?.user as { role?: string } | undefined)?.role;
   const canAccess =
     role === "ADMIN" ||
@@ -98,6 +93,10 @@ export default async function OrderConfirmationPage({
   }
 
   const shippingLines = formatShippingAddress(order.shippingAddress);
+  const deliveryMethod =
+    (order.shippingAddress as { deliveryMethod?: string } | null)?.deliveryMethod === "PICKUP"
+      ? "PICKUP"
+      : "SHIPPING";
 
   return (
     <div className="mx-auto max-w-4xl px-4 py-12 sm:px-6 lg:px-8">
@@ -109,11 +108,11 @@ export default async function OrderConfirmationPage({
           Order received
         </p>
         <h1 className="mt-2 bg-gradient-to-r from-navy-deep via-sky to-cyan bg-clip-text text-3xl font-bold tracking-tight text-transparent sm:text-4xl">
-          Order Submitted
+          Awaiting Payment
         </h1>
         <p className="mt-2 text-muted-foreground">
-          Your order was submitted successfully. No payment was collected or
-          processed on this website. Your order details are saved below.
+          Your order has been received but is not yet paid or confirmed. Complete
+          your Interac e-Transfer to begin processing.
         </p>
         <p className="mx-auto mt-3 w-fit rounded-full border border-sky/15 bg-sky/5 px-4 py-1.5 font-mono text-sm font-bold text-sky">
           {order.orderNumber}
@@ -125,14 +124,12 @@ export default async function OrderConfirmationPage({
           <CardHeader>
             <div className="flex items-center gap-2">
               <Banknote className="h-5 w-5 text-navy" />
-              <CardTitle>External Payment Instructions</CardTitle>
+              <CardTitle>Interac e-Transfer Instructions</CardTitle>
             </div>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="rounded-lg border border-border bg-card p-4">
-              <p className="text-sm text-muted-foreground">
-                When you are ready, send your external e-Transfer to
-              </p>
+              <p className="text-sm text-muted-foreground">Send payment to</p>
               <p className="mt-1 text-lg font-semibold text-navy">
                 {etransfer.email}
               </p>
@@ -151,10 +148,6 @@ export default async function OrderConfirmationPage({
             </div>
             <p className="text-sm leading-relaxed text-muted-foreground">
               {etransfer.instructions}
-            </p>
-            <p className="rounded-lg border border-sky/15 bg-white p-3 text-xs text-muted-foreground">
-              OVIpeps does not collect banking or card information and does not
-              process this payment through the website.
             </p>
           </CardContent>
         </Card>
@@ -196,9 +189,13 @@ export default async function OrderConfirmationPage({
               <div className="text-sm">
                 <p className="text-muted-foreground">Status</p>
                 <p className="font-medium capitalize">
-                  {order.status === "AWAITING_PAYMENT"
-                    ? "Order submitted"
-                    : order.status.replace(/_/g, " ").toLowerCase()}
+                  {order.status.replace(/_/g, " ").toLowerCase()}
+                </p>
+              </div>
+              <div className="text-sm">
+                <p className="text-muted-foreground">Delivery method</p>
+                <p className="font-medium">
+                  {deliveryMethod === "PICKUP" ? "Pick Up" : "Shipping"}
                 </p>
               </div>
               <ul className="space-y-3 border-t border-border pt-4">
@@ -226,7 +223,7 @@ export default async function OrderConfirmationPage({
                 </div>
                 {order.discountAmount > 0 && (
                   <div className="flex justify-between text-success">
-                    <span>{order.affiliateCode ? "Discount (includes affiliate 5%)" : "Discount"}</span>
+                    <span>Discount</span>
                     <span>-{formatCurrency(order.discountAmount)}</span>
                   </div>
                 )}
@@ -234,7 +231,7 @@ export default async function OrderConfirmationPage({
                   <span className="text-muted-foreground">Shipping</span>
                   <span>
                     {order.shippingAmount === 0
-                      ? "Free"
+                      ? "$0.00"
                       : formatCurrency(order.shippingAmount)}
                   </span>
                 </div>
@@ -250,10 +247,14 @@ export default async function OrderConfirmationPage({
 
           <Card>
             <CardHeader>
-              <CardTitle>Shipping Address</CardTitle>
+              <CardTitle>{deliveryMethod === "PICKUP" ? "Pick Up" : "Shipping Address"}</CardTitle>
             </CardHeader>
             <CardContent>
-              {shippingLines ? (
+              {deliveryMethod === "PICKUP" ? (
+                <p className="text-sm font-medium text-foreground">
+                  This order will be picked up. No shipping address is required.
+                </p>
+              ) : shippingLines ? (
                 <address className="space-y-0.5 text-sm not-italic text-foreground">
                   {shippingLines.map((line) => (
                     <p key={line}>{line}</p>

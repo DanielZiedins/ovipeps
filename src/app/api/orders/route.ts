@@ -11,25 +11,55 @@ export async function POST(request: Request) {
       /** @deprecated Prefer termsAccepted */
       researchUseAccepted?: boolean;
     };
-    let userId: string | null = null;
-    try {
-      const session = await auth();
-      userId = session?.user?.id ?? null;
-    } catch (error) {
-      // Account lookup is optional for guest checkout. A missing or temporary
-      // auth configuration must not prevent a customer from placing an order.
-      console.error("Optional checkout session lookup failed", error);
-    }
+    const session = await auth();
 
     if (!body.email?.trim()) {
       return NextResponse.json({ error: "Email is required" }, { status: 400 });
     }
 
-    if (!body.shippingAddress) {
+    if (!body.firstName?.trim() || !body.lastName?.trim()) {
+      return NextResponse.json(
+        { error: "First and last name are required" },
+        { status: 400 }
+      );
+    }
+
+    if (body.deliveryMethod !== "SHIPPING" && body.deliveryMethod !== "PICKUP") {
+      return NextResponse.json(
+        { error: "Select a valid delivery method" },
+        { status: 400 }
+      );
+    }
+
+    if (body.deliveryMethod === "SHIPPING" && !body.shippingAddress) {
       return NextResponse.json(
         { error: "Shipping address is required" },
         { status: 400 }
       );
+    }
+
+    if (body.deliveryMethod === "SHIPPING") {
+      const address = body.shippingAddress!;
+      const requiredAddressValues = [
+        address.firstName,
+        address.lastName,
+        address.address1,
+        address.city,
+        address.province,
+        address.postalCode,
+        address.country,
+      ];
+      const validProvince = [
+        "AB", "BC", "MB", "NB", "NL", "NS", "NT", "NU", "ON", "PE", "QC", "SK", "YT",
+      ].includes(address.province);
+      const validPostalCode = /^[A-Za-z]\d[A-Za-z][ -]?\d[A-Za-z]\d$/.test(address.postalCode);
+
+      if (requiredAddressValues.some((value) => !value?.trim()) || !validProvince || !validPostalCode || address.country !== "CA") {
+        return NextResponse.json(
+          { error: "Enter a complete and valid Canadian shipping address" },
+          { status: 400 }
+        );
+      }
     }
 
     if (!body.items?.length) {
@@ -61,7 +91,7 @@ export async function POST(request: Request) {
 
     const order = await createOrder({
       ...body,
-      userId,
+      userId: session?.user?.id ?? null,
     });
 
     return NextResponse.json({
@@ -79,9 +109,11 @@ export async function POST(request: Request) {
       "Discount code is not yet active",
       "Discount code has expired",
       "Discount code has reached its usage limit",
-      "Affiliate code not found or inactive",
       "Product and variant mismatch",
-      "One or more cart items are no longer available",
+      "Shipping address is required",
+      "First and last name are required",
+      "Select a valid delivery method",
+      "Enter a complete and valid Canadian shipping address",
     ];
     const isSafe =
       safeMessages.some((safeMessage) => message.startsWith(safeMessage)) ||

@@ -15,6 +15,7 @@ import {
   LockKeyhole,
   MapPin,
   PackageCheck,
+  Store,
   ShoppingBag,
   ShieldCheck,
   Truck,
@@ -48,25 +49,31 @@ const checkoutSchema = z.object({
   email: z.string().email("Enter a valid email address"),
   firstName: z.string().min(1, "First name is required"),
   lastName: z.string().min(1, "Last name is required"),
-  address1: z.string().min(1, "Street address is required"),
+  deliveryMethod: z.enum(["SHIPPING", "PICKUP"]),
+  address1: z.string().optional(),
   address2: z.string().optional(),
-  city: z.string().min(1, "City is required"),
-  province: z.enum(
-    CANADIAN_PROVINCES.map((p) => p.value) as [string, ...string[]],
-    { message: "Select a province" }
-  ),
-  postalCode: z
-    .string()
-    .min(1, "Postal code is required")
-    .regex(
-      /^[A-Za-z]\d[A-Za-z][ -]?\d[A-Za-z]\d$/,
-      "Enter a valid Canadian postal code"
-    ),
+  city: z.string().optional(),
+  province: z.string().optional(),
+  postalCode: z.string().optional(),
   phone: z.string().optional(),
   affiliateCode: z.string().optional(),
   termsAccepted: z.boolean().refine((value) => value, {
     message: "Please agree to the Terms of Service to continue",
   }),
+}).superRefine((values, ctx) => {
+  if (values.deliveryMethod !== "SHIPPING") return;
+  const requiredFields = [
+    ["address1", values.address1, "Street address is required"],
+    ["city", values.city, "City is required"],
+    ["province", values.province, "Select a province"],
+    ["postalCode", values.postalCode, "Postal code is required"],
+  ] as const;
+  for (const [field, value, message] of requiredFields) {
+    if (!value?.trim()) ctx.addIssue({ code: "custom", path: [field], message });
+  }
+  if (values.postalCode?.trim() && !/^[A-Za-z]\d[A-Za-z][ -]?\d[A-Za-z]\d$/.test(values.postalCode)) {
+    ctx.addIssue({ code: "custom", path: ["postalCode"], message: "Enter a valid Canadian postal code" });
+  }
 });
 
 type CheckoutFormValues = z.infer<typeof checkoutSchema>;
@@ -76,9 +83,7 @@ export function CheckoutForm() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [hydrated, setHydrated] = useState(false);
-  const [affiliateCodeState, setAffiliateCodeState] = useState<
-    "idle" | "checking" | "valid" | "invalid"
-  >("idle");
+  const [deliveryMethod, setDeliveryMethod] = useState<"SHIPPING" | "PICKUP">("SHIPPING");
 
   const items = useCartStore((s) => s.items);
   const discountCode = useCartStore((s) => s.discountCode);
@@ -90,12 +95,13 @@ export function CheckoutForm() {
     register,
     handleSubmit,
     setValue,
-    watch,
+    clearErrors,
     formState: { errors },
   } = useForm<CheckoutFormValues>({
     resolver: zodResolver(checkoutSchema),
     defaultValues: {
       affiliateCode: affiliateCode ?? "",
+      deliveryMethod: "SHIPPING",
       termsAccepted: false,
     },
   });
@@ -110,47 +116,20 @@ export function CheckoutForm() {
     }
   }, [affiliateCode, setValue]);
 
-  const enteredAffiliateCode = watch("affiliateCode");
-
-  useEffect(() => {
-    const code = enteredAffiliateCode?.trim();
-    if (!code) {
-      setAffiliateCodeState("idle");
-      return;
-    }
-
-    const controller = new AbortController();
-    const timer = window.setTimeout(async () => {
-      setAffiliateCodeState("checking");
-      try {
-        const response = await fetch(
-          `/api/affiliates/validate?code=${encodeURIComponent(code)}`,
-          { signal: controller.signal }
-        );
-        setAffiliateCodeState(response.ok ? "valid" : "invalid");
-      } catch (error) {
-        if (!(error instanceof DOMException && error.name === "AbortError")) {
-          setAffiliateCodeState("invalid");
-        }
-      }
-    }, 300);
-
-    return () => {
-      window.clearTimeout(timer);
-      controller.abort();
-    };
-  }, [enteredAffiliateCode]);
-
   const totals = useMemo(() => {
     const cartSubtotal = subtotal();
-    const affiliateDiscountAmount =
-      affiliateCodeState === "valid"
-        ? Math.round(cartSubtotal * 0.05 * 100) / 100
-        : 0;
-    const shippingAmount = FLAT_SHIPPING_RATE;
-    const total = cartSubtotal - affiliateDiscountAmount + shippingAmount;
-    return { cartSubtotal, affiliateDiscountAmount, shippingAmount, total };
-  }, [affiliateCodeState, items, subtotal]);
+    const shippingAmount = deliveryMethod === "PICKUP" ? 0 : FLAT_SHIPPING_RATE;
+    const total = cartSubtotal + shippingAmount;
+    return { cartSubtotal, shippingAmount, total };
+  }, [deliveryMethod, items, subtotal]);
+
+  const selectDeliveryMethod = (method: "SHIPPING" | "PICKUP") => {
+    setDeliveryMethod(method);
+    setValue("deliveryMethod", method, { shouldValidate: true });
+    if (method === "PICKUP") {
+      clearErrors(["address1", "address2", "city", "province", "postalCode"]);
+    }
+  };
 
   const onSubmit = async (values: CheckoutFormValues) => {
     if (!items.length) {
@@ -161,33 +140,30 @@ export function CheckoutForm() {
     setIsSubmitting(true);
     setSubmitError(null);
 
-    if (values.affiliateCode?.trim() && affiliateCodeState === "invalid") {
-      setSubmitError("Affiliate code not found or inactive.");
-      setIsSubmitting(false);
-      return;
-    }
-
     try {
       const response = await fetch("/api/orders", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           email: values.email,
-          shippingAddress: {
+          firstName: values.firstName,
+          lastName: values.lastName,
+          phone: values.phone || undefined,
+          deliveryMethod: values.deliveryMethod,
+          shippingAddress: values.deliveryMethod === "SHIPPING" ? {
             firstName: values.firstName,
             lastName: values.lastName,
-            address1: values.address1,
+            address1: values.address1!,
             address2: values.address2 || undefined,
-            city: values.city,
-            province: values.province,
-            postalCode: values.postalCode.toUpperCase(),
+            city: values.city!,
+            province: values.province!,
+            postalCode: values.postalCode!.toUpperCase(),
             country: "CA",
             phone: values.phone || undefined,
-          },
+          } : null,
           items: items.map((item) => ({
             productId: item.productId,
             variantId: item.variantId,
-            sku: item.sku,
             quantity: item.quantity,
           })),
           discountCode,
@@ -303,6 +279,39 @@ export function CheckoutForm() {
       <div className="space-y-6 lg:col-span-3">
         <Card className="overflow-hidden border-sky/15 shadow-sm">
           <CardHeader>
+            <CardTitle>Delivery Method</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid gap-3 sm:grid-cols-2" role="radiogroup" aria-label="Delivery method">
+              {[
+                { value: "SHIPPING" as const, label: "Shipping", description: "$25 CAD flat rate", icon: Truck },
+                { value: "PICKUP" as const, label: "Pick Up", description: "$0.00 shipping", icon: Store },
+              ].map(({ value, label, description, icon: Icon }) => (
+                <label
+                  key={value}
+                  className={`flex cursor-pointer items-center gap-3 rounded-xl border p-4 transition-colors ${deliveryMethod === value ? "border-sky bg-sky/5 ring-2 ring-sky/15" : "border-border hover:border-sky/40"}`}
+                >
+                  <input
+                    type="radio"
+                    value={value}
+                    className="h-4 w-4 text-sky focus:ring-sky"
+                    {...register("deliveryMethod")}
+                    checked={deliveryMethod === value}
+                    onChange={() => selectDeliveryMethod(value)}
+                  />
+                  <Icon className="h-5 w-5 shrink-0 text-sky" />
+                  <span>
+                    <span className="block font-semibold text-foreground">{label}</span>
+                    <span className="block text-xs text-muted-foreground">{description}</span>
+                  </span>
+                </label>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="overflow-hidden border-sky/15 shadow-sm">
+          <CardHeader>
             <div className="flex items-center gap-3">
               <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-sky/10 text-sky">
                 <LockKeyhole className="h-4 w-4" />
@@ -336,7 +345,7 @@ export function CheckoutForm() {
                 <p className="text-xs font-bold uppercase tracking-wider text-cyan">
                   Step 2
                 </p>
-                <CardTitle>Shipping Address</CardTitle>
+                <CardTitle>{deliveryMethod === "SHIPPING" ? "Shipping Address" : "Customer Details"}</CardTitle>
               </div>
             </div>
           </CardHeader>
@@ -355,6 +364,7 @@ export function CheckoutForm() {
                 {...register("lastName")}
               />
             </div>
+            {deliveryMethod === "SHIPPING" && <>
             <Input
               label="Address"
               autoComplete="address-line1"
@@ -391,14 +401,15 @@ export function CheckoutForm() {
                 ))}
               </Select>
             </div>
+            </>}
             <div className="grid gap-4 sm:grid-cols-2">
-              <Input
+              {deliveryMethod === "SHIPPING" && <Input
                 label="Postal code"
                 autoComplete="postal-code"
                 placeholder="A1A 1A1"
                 error={errors.postalCode?.message}
                 {...register("postalCode")}
-              />
+              />}
               <Input
                 label="Phone (optional)"
                 type="tel"
@@ -420,7 +431,7 @@ export function CheckoutForm() {
                 <p className="text-xs font-bold uppercase tracking-wider text-teal">
                   Step 3
                 </p>
-                <CardTitle>No Online Payment</CardTitle>
+                <CardTitle>Payment Method</CardTitle>
               </div>
             </div>
           </CardHeader>
@@ -430,17 +441,15 @@ export function CheckoutForm() {
                 <Banknote className="h-4 w-4" />
               </div>
               <div>
-                <p className="font-bold text-foreground">
-                  Submit your order without paying online
-                </p>
+                <p className="font-bold text-foreground">Interac e-Transfer</p>
                 <p className="mt-1 text-sm text-muted-foreground">
-                  OVIpeps does not collect card numbers or process payments on
-                  this website. Submit your order now and complete any payment
-                  separately using the instructions provided afterward.
+                  After placing your order, you&apos;ll receive instructions to
+                  send payment via Interac e-Transfer. Your order will be
+                  processed once payment is confirmed.
                 </p>
                 <p className="mt-3 inline-flex items-center gap-1.5 text-xs font-semibold text-sky">
                   <FileCheck2 className="h-3.5 w-3.5" />
-                  No payment information is required to submit
+                  Instructions appear immediately after ordering
                 </p>
               </div>
             </div>
@@ -455,15 +464,7 @@ export function CheckoutForm() {
             <Input
               label="Affiliate / referral code"
               placeholder="Enter code"
-              hint={
-                affiliateCodeState === "valid"
-                  ? "Code applied — you receive 5% off the merchandise subtotal."
-                  : affiliateCodeState === "checking"
-                    ? "Checking affiliate code…"
-                    : affiliateCodeState === "invalid"
-                      ? "That affiliate code was not found or is inactive."
-                      : "Enter an active affiliate code to receive 5% off your order."
-              }
+              hint="If you were referred by a partner, enter their code here."
               error={errors.affiliateCode?.message}
               {...register("affiliateCode")}
             />
@@ -562,12 +563,10 @@ export function CheckoutForm() {
                 <span className="text-muted-foreground">Subtotal</span>
                 <span>{formatCurrency(totals.cartSubtotal)}</span>
               </div>
-              {totals.affiliateDiscountAmount > 0 ? (
-                <div className="flex justify-between text-success">
-                  <span>Affiliate discount (5%)</span>
-                  <span>-{formatCurrency(totals.affiliateDiscountAmount)}</span>
-                </div>
-              ) : null}
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">Delivery method</span>
+                <span className="font-medium">{deliveryMethod === "PICKUP" ? "Pick Up" : "Shipping"}</span>
+              </div>
               <div className="flex justify-between">
                 <span className="text-muted-foreground">Shipping</span>
                 <span>
@@ -577,8 +576,8 @@ export function CheckoutForm() {
                 </span>
               </div>
               <p className="rounded-xl bg-sky/5 p-3 text-xs font-medium text-sky">
-                <Truck className="mr-1.5 inline h-3.5 w-3.5" />
-                $25 CAD flat-rate shipping
+                {deliveryMethod === "PICKUP" ? <Store className="mr-1.5 inline h-3.5 w-3.5" /> : <Truck className="mr-1.5 inline h-3.5 w-3.5" />}
+                {deliveryMethod === "PICKUP" ? "Pick Up — no shipping charge" : "$25 CAD flat-rate shipping"}
               </p>
               <div className="flex justify-between border-t border-border pt-2 text-base font-semibold">
                 <span>Total</span>
@@ -606,10 +605,10 @@ export function CheckoutForm() {
               {isSubmitting ? (
                 <>
                   <Loader2 className="h-4 w-4 animate-spin" />
-                  Submitting Order...
+                  Placing Order...
                 </>
               ) : (
-                "Submit Order"
+                "Place Order"
               )}
             </Button>
 
