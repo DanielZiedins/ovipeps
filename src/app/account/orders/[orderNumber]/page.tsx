@@ -77,6 +77,10 @@ export default async function OrderDetailPage({ params }: OrderDetailPageProps) 
   }
 
   const shippingLines = formatShippingAddress(order.shippingAddress);
+  const deliveryMethod =
+    (order.shippingAddress as { deliveryMethod?: string } | null)?.deliveryMethod === "PICKUP"
+      ? "PICKUP"
+      : "SHIPPING";
   const trackingNumber =
     order.trackingNumber ?? order.shipments[0]?.trackingNumber;
   const trackingCarrier =
@@ -213,6 +217,10 @@ export default async function OrderDetailPage({ params }: OrderDetailPageProps) 
 
                   <div className="mt-6 space-y-1 border-t border-border pt-4 text-sm">
                     <div className="flex justify-between">
+                      <span className="text-muted-foreground">Delivery method</span>
+                      <span>{deliveryMethod === "PICKUP" ? "Pick Up" : "Shipping"}</span>
+                    </div>
+                    <div className="flex justify-between">
                       <span className="text-muted-foreground">Subtotal</span>
                       <span>{formatCurrency(order.subtotal)}</span>
                     </div>
@@ -226,7 +234,7 @@ export default async function OrderDetailPage({ params }: OrderDetailPageProps) 
                       <span className="text-muted-foreground">Shipping</span>
                       <span>
                         {order.shippingAmount === 0
-                          ? "Free"
+                          ? "$0.00"
                           : formatCurrency(order.shippingAmount)}
                       </span>
                     </div>
@@ -242,10 +250,14 @@ export default async function OrderDetailPage({ params }: OrderDetailPageProps) 
 
               <Card>
                 <CardHeader>
-                  <CardTitle>Shipping Address</CardTitle>
+                  <CardTitle>{deliveryMethod === "PICKUP" ? "Pick Up" : "Shipping Address"}</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  {shippingLines ? (
+                  {deliveryMethod === "PICKUP" ? (
+                    <p className="text-sm font-medium">
+                      Pick Up — no shipping address required.
+                    </p>
+                  ) : shippingLines ? (
                     <address className="space-y-0.5 text-sm not-italic">
                       {shippingLines.map((line) => (
                         <p key={line}>{line}</p>

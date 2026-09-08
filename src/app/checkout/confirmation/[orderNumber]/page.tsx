@@ -98,6 +98,10 @@ export default async function OrderConfirmationPage({
   }
 
   const shippingLines = formatShippingAddress(order.shippingAddress);
+  const deliveryMethod =
+    (order.shippingAddress as { deliveryMethod?: string } | null)?.deliveryMethod === "PICKUP"
+      ? "PICKUP"
+      : "SHIPPING";
 
   return (
     <div className="mx-auto max-w-4xl px-4 py-12 sm:px-6 lg:px-8">
@@ -201,6 +205,12 @@ export default async function OrderConfirmationPage({
                     : order.status.replace(/_/g, " ").toLowerCase()}
                 </p>
               </div>
+              <div className="text-sm">
+                <p className="text-muted-foreground">Delivery method</p>
+                <p className="font-medium">
+                  {deliveryMethod === "PICKUP" ? "Pick Up" : "Shipping"}
+                </p>
+              </div>
               <ul className="space-y-3 border-t border-border pt-4">
                 {order.items.map((item) => (
                   <li
@@ -234,7 +244,7 @@ export default async function OrderConfirmationPage({
                   <span className="text-muted-foreground">Shipping</span>
                   <span>
                     {order.shippingAmount === 0
-                      ? "Free"
+                      ? "$0.00"
                       : formatCurrency(order.shippingAmount)}
                   </span>
                 </div>
@@ -250,10 +260,14 @@ export default async function OrderConfirmationPage({
 
           <Card>
             <CardHeader>
-              <CardTitle>Shipping Address</CardTitle>
+              <CardTitle>{deliveryMethod === "PICKUP" ? "Pick Up" : "Shipping Address"}</CardTitle>
             </CardHeader>
             <CardContent>
-              {shippingLines ? (
+              {deliveryMethod === "PICKUP" ? (
+                <p className="text-sm font-medium text-foreground">
+                  This order will be picked up. No shipping address is required.
+                </p>
+              ) : shippingLines ? (
                 <address className="space-y-0.5 text-sm not-italic text-foreground">
                   {shippingLines.map((line) => (
                     <p key={line}>{line}</p>

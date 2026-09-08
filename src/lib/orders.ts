@@ -39,7 +39,11 @@ export interface CreateOrderItem {
 
 export interface CreateOrderInput {
   email: string;
-  shippingAddress: ShippingAddress;
+  firstName: string;
+  lastName: string;
+  phone?: string;
+  deliveryMethod: "SHIPPING" | "PICKUP";
+  shippingAddress?: ShippingAddress | null;
   items: CreateOrderItem[];
   discountCode?: string | null;
   affiliateCode?: string | null;
@@ -191,7 +195,11 @@ export async function createOrder(input: CreateOrderInput) {
   );
   const discountCode = promotion.discountCode;
 
-  const shippingAmount = FLAT_SHIPPING_RATE;
+  if (input.deliveryMethod === "SHIPPING" && !input.shippingAddress) {
+    throw new Error("Shipping address is required");
+  }
+
+  const shippingAmount = input.deliveryMethod === "PICKUP" ? 0 : FLAT_SHIPPING_RATE;
   const taxAmount = 0;
   const total =
     Math.round((subtotal - discountAmount + shippingAmount + taxAmount) * 100) /
@@ -244,7 +252,14 @@ export async function createOrder(input: CreateOrderInput) {
         discountCode: discountCode ?? undefined,
         affiliateCode: affiliate?.code,
         referralCode: input.referralCode?.trim() || undefined,
-        shippingAddress: input.shippingAddress as unknown as Prisma.InputJsonValue,
+        shippingAddress: {
+          ...(input.shippingAddress ?? {
+            firstName: input.firstName,
+            lastName: input.lastName,
+            phone: input.phone || undefined,
+          }),
+          deliveryMethod: input.deliveryMethod,
+        } as unknown as Prisma.InputJsonValue,
         items: {
           create: orderItems,
         },
@@ -284,7 +299,9 @@ export async function createOrder(input: CreateOrderInput) {
       emailTemplates.orderConfirmation({
         orderNumber: order.orderNumber,
         total: `$${order.total.toFixed(2)} CAD`,
-        name: input.shippingAddress.firstName,
+        name: input.firstName,
+        deliveryMethod: input.deliveryMethod,
+        shippingAmount: `$${order.shippingAmount.toFixed(2)} CAD`,
         etransferEmail: eTransferSetting?.value ?? "ovipeps@gmail.com",
         autodepositName: "IN Z",
         items: order.items.map((item) => ({

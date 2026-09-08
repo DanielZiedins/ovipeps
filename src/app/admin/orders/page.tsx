@@ -39,6 +39,7 @@ export default async function AdminOrdersPage({
       status: true,
       total: true,
       paymentReference: true,
+      shippingAddress: true,
       createdAt: true,
     },
   });
@@ -82,6 +83,7 @@ export default async function AdminOrdersPage({
               <th className="px-4 py-3 font-medium">Order</th>
               <th className="px-4 py-3 font-medium">Customer</th>
               <th className="px-4 py-3 font-medium">Status</th>
+              <th className="px-4 py-3 font-medium">Delivery</th>
               <th className="px-4 py-3 font-medium">Total</th>
               <th className="px-4 py-3 font-medium">Date</th>
               <th className="px-4 py-3 font-medium" />
@@ -90,7 +92,7 @@ export default async function AdminOrdersPage({
           <tbody>
             {orders.length === 0 ? (
               <tr>
-                <td colSpan={6} className="px-4 py-8 text-center text-muted-foreground">
+                <td colSpan={7} className="px-4 py-8 text-center text-muted-foreground">
                   No orders found.
                 </td>
               </tr>
@@ -107,6 +109,14 @@ export default async function AdminOrdersPage({
                   <td className="px-4 py-3">{order.email}</td>
                   <td className="px-4 py-3">
                     <OrderStatusBadge status={order.status} />
+                  </td>
+                  <td className="px-4 py-3">
+                    <span className={cn(
+                      "rounded-full px-2.5 py-1 text-xs font-semibold",
+                      (order.shippingAddress as { deliveryMethod?: string } | null)?.deliveryMethod === "PICKUP" ? "bg-teal/10 text-teal" : "bg-sky/10 text-sky"
+                    )}>
+                      {(order.shippingAddress as { deliveryMethod?: string } | null)?.deliveryMethod === "PICKUP" ? "Pick Up" : "Shipping"}
+                    </span>
                   </td>
                   <td className="px-4 py-3 tabular-nums">
                     {formatCurrency(order.total)}
